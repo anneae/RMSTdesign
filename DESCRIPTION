@@ -1,5 +1,5 @@
 Package: RMSTdesign
-Title: What the Package Does (One Line, Title Case)
+Title: Sample Size and Power Calculation for the Difference in Restricted Mean Survival Time
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Anne",
@@ -7,9 +7,18 @@ Authors@R:
            role = c("aut", "cre"),
            email = "eato0055@umn.edu",
            comment = c(ORCID = "0000-0001-5900-9745"))
-Description: What the package does (one paragraph).
-License: What license it uses
+Description: Calculates the asymptotic power of the test of the difference in 
+    restricted mean survival time under user-specified trial design parameters, 
+    or the sample size required for a specified power. It also provides 
+    the probability restricted mean survival time will be estimable using the area
+    under the Kaplan-Meier curve, and, if desired, plots of power versus design 
+    parameters and empirical power based on simulations. 
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/anneae/RMSTdesign
 BugReports: https://github.com/anneae/RMSTdesign/issues
+Imports:
+    stats
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.1

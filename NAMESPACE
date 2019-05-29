@@ -2,6 +2,7 @@
 
 export(RMSTpow)
 export(plotsurvdef)
+export(shortest_duration)
 export(survdef)
 export(survdefHR)
 export(survdefWeibull)

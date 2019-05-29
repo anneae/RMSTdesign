@@ -19,6 +19,8 @@ LazyData: true
 URL: https://github.com/anneae/RMSTdesign
 BugReports: https://github.com/anneae/RMSTdesign/issues
 Imports:
-    stats
+    stats, 
+    survival,
+    graphics
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1

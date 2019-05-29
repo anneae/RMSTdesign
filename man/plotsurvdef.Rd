@@ -21,5 +21,5 @@ Plots two survival distributions.
 \examples{
 RIC<-survdef(times = 18, surv = .6)
 MAC<-survdef(times = 3, haz=c(4.375*RIC$h(1),RIC$h(1)))
-plot.survdef(RIC, MAC, 24)
+plotsurvdef(RIC, MAC, 24)
 }

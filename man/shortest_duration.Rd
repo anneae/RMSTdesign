@@ -35,6 +35,18 @@ trial is multiplied to acquire the duration of the alternative trial design.
 Default is 1.1, meaning a trial that is 10% longer in duration than the
 shortest possible trial. This argument is ignored if altdesign=F.}
 }
+\value{
+a list with components:
+\item{k1}{length of the accrual period. We assume subjects will accrue
+uniformly over the interval (0, k1) and then be followed until trial time
+k1+k2.}
+\item{k2}{length of the follow-up period.  }
+\item{duration}{trial duration in calendar time, k1+k2.  }
+\item{powerRMST}{the asymptotic power of the RMST test.  }
+\item{powerLR}{the asymptotic power of the log-rank test.  }
+\item{pKME}{the probability that you will be able to estimate RMST
+difference at time tau using the standard Kaplan-Meier estimator.}
+}
 \description{
 Find the trial with the shortest duration in calendar time with a specified
 power and probability that RMST difference will be estimable with the

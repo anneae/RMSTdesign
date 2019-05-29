@@ -1,0 +1,77 @@
+---
+title: "Using RMSTdesign to Find Optimal Trial Designs"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using RMSTdesign to Find Optimal Trial Designs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(RMSTdesign)
+```
+
+We use a simple example to discuss different criteria for selecting an optimal trial and how to do it. In some cases the optimal trial design may be the one that has the smallest sample size, regardless of duration; in other cases it may be the one with the shortest duration, regardless of sample size, and in other cases, you may be looking for a balance between the two. 
+
+We consider planning a trial where we expect survival time distributions in both the control and treatment groups follow exponential distributions, which implies proportional hazards. We expect the median survival time in the control group to be 3 years and the new treatment to reduce mortality risk by 33% (hazard ratio = 0.67). In the disease we are studying, 3 years is a clinically important landmark, so we choose  $\tau$= 3 years. We want to estimate the sample size to achieve 80% power with a one-sided Type I error of 0.025. 
+
+```{r}
+con<-survdef(times = 3, surv = 0.5) 
+trt<-survdef(haz = 0.67*con$h(1))
+plotsurvdef(con, trt, 5)
+```
+
+We can consult Table 2 to get a rough estimate of the number of patients we will need for a hazard ratio of 0.67 with $\tau$ equal to median survival in the control group. We will need 552 patients (276 in each arm) to achieve 80% power. This estimate doesn't take into account administrative censoring. This code obtains the same result. 
+```{r}
+RMSTpow(con, trt, k1 = 0, k2 = 3, tau = 3, power = 0.8)
+```
+
+The trial with all patients followed to time $\tau$ is optimal in terms of minimal sample size. Also, you are sure to be able to estimate RMST difference at time $\tau$ because no patients will be censored before time $\tau$. Note that extending followup time beyong $\tau$ provides no benefit in terms of either power or pKME (the probability RMST difference will be estimable with the Kaplan-Meier estimator), though it does increase the power of the standard log-rank test. 
+
+```{r}
+RMSTpow(con, trt, k1 = 0, k2 = 10, tau = 3, power = 0.8)
+```
+
+We may also be interested in the trial design with the shortest duration. Our function shortest_duration can find that design, but you need to input an accrual rate. Let's assume the accrual rate is 552/4 = 138 patients per year. Notice that under this assumption, accruing 552 patients takes 4 years, and a trial where you accrue 552 patients and follow all patients for 3 years takes 7 years to complete. 
+
+This code finds the shortest duration trial that has the specified power and pKME (default is 0.95):
+```{r}
+shortest_duration(con, trt, 3, .8, 552/4)
+```
+
+The shortest duration trial enrolls 668 patients and takes 4.84 years to complete. 
+
+Our shortest duration function also optimizes over sample size, within trial designs that have the shortest duration. For example, if we thought we could accrue 1000 patients per year, either a trial that recruits for the whole duration and lasts 3.013386 years, or a trial that recruits for 0.554 years, then follows patients for 2.459386 years for a total trial duration of 0.554 + 2.459386 = 3.013386 years will meet the required threshold for power and pKME, as shown below. However, the second trial needs about 1/6 as many patients (554 versus 3013). Our `shortest_duration` function will return the latter trial design, the smallest sample size trial out of the trials with the shortest duration. 
+```{r}
+RMSTpow(con, trt, 3.013386, 0, 3, 3.013386*1000)
+RMSTpow(con, trt, 0.554, 2.459386, 3, 0.554*1000)
+shortest_duration(con, trt, 3, .8, 1000)
+```
+
+Sometimes a trial that is only a little longer than the shortest duration trial can offer a large reduction in sample size. One way to explore this is using our `shortest_duration` function with the option `altdesign = T`. You add a multiplier which defines the trial length you are willing to consider, relative to the shortest duration trial, on a multiplicative scale. For example, if you set `multiplier` = 1.1, the function will find the smallest sample size trial with duration equal to 1.1 times the shorest possible duration. In other words, you are willing to consider a trial that is 10% longer than the optimal trial. In the example above, the shortest possible trial was 4.84 years, so a multiplier of 1.1 indicates considering trials of length 5.3.
+```{r}
+shortest_duration(con, trt, 3, .8, 552/4, altdesign = T, multiplier = 1.1)
+```
+We see that by extending the trial by about half a year, we can reduce the number of required patients by 100.
+
+We now have several candidate trial designs. We can explore each design further by plotting power as a function of each design parameter using the `plot = T` option. We focus on the trial that enrolls 552 patients over 4 years, then follows them for 3 years. In the following plots, the red lines represent the power of the log-rank test and the black lines represent the power of the test for difference in RMST.
+```{r}
+RMSTpow(con, trt, k1 = 4, k2 = 3, tau = 3, n = 552, plot = T)
+```
+
+The plots show us that we can reduce accrual time and maintain power, but that would mean we need to enroll the same number of patients in a shorter time, which may not be practical. We also see that we could reduce follow-up time by about a year without a significant loss in power. 
+```{r}
+RMSTpow(con, trt, k1 = 4, k2 = 2, tau = 3, n = 552)
+```
+We see that reducing $k_2$ to 2 went slightly too far, as power has dropped below 0.8. Using trial and error we find that $k_2$=2.1 is adequate to preserves power and pKME, reducing total trial duration to 6.1 years.
+```{r}
+RMSTpow(con, trt, k1 = 4, k2 = 2.1, tau = 3, n = 552, plot = T)
+```
+The plots show us that, under the new design, reducing follow-up time will reduce power. Increasing sample size or shortening accrual while keeping sample size constant would increase power, but may not be desirable or possible. Increasing $\tau$ would increase power, which may be something to consider, but $\tau$ should be selected mainly based on clinical relevance. Similar plots could be used to explore and tweak the other candidate designs. 

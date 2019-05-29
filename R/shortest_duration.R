@@ -33,7 +33,7 @@
 #' \item{powerRMST}{the asymptotic power of the RMST test.  }
 #' \item{powerLR}{the asymptotic power of the log-rank test.  }
 #' \item{pKME}{the probability that you will be able to estimate RMST
-#' difference at time tau using the standard Kaplan-Meier estimator.
+#' difference at time tau using the standard Kaplan-Meier estimator.}
 #' @export
 #'
 #' @examples

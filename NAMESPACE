@@ -2,4 +2,7 @@
 
 export(survdef)
 export(survdefHR)
+export(survdefWeibull)
+importFrom(stats,dweibull)
 importFrom(stats,integrate)
+importFrom(stats,pweibull)

@@ -27,6 +27,10 @@ You can install `RMSTdesign` from [GitHub](https://github.com/) with:
 # install.packages("devtools")
 devtools::install_github("anneae/RMSTdesign")
 ```
+
+## Documentation
+Documentation and vignettes are available [here](https://anneae.github.io/RMSTdesign/).
+
 ## Example
 
 In this basic example, we specify that the control group is expected to have a median survival of 3 years, the treatment group is expected to have a median survival of 4 years, and we plan to accrue patients over one year and follow them until the last patient has 3 years of followup. Also, we select $\tau$ = 3 years as a clinically meaningful restriction time. The code below determines the required sample size for a trial with 80% power. 

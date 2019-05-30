@@ -17,6 +17,11 @@ You can install `RMSTdesign` from [GitHub](https://github.com/) with:
 devtools::install_github("anneae/RMSTdesign")
 ```
 
+Documentation
+-------------
+
+Documentation and vignettes are available [here](https://anneae.github.io/RMSTdesign/).
+
 Example
 -------
 

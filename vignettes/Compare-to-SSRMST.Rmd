@@ -1,0 +1,57 @@
+---
+title: "Compare Power from RMSTdesign and SSRMST Packages"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Compare Power from RMSTdesign and SSRMST Packages}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(RMSTdesign)
+library(SSRMST)
+```
+
+This vignette compares results from our package and the `SSRMST` package. The data is based on the Saxagliptin Study which studied the cardiovascular risk of saxagliptin.[^1]^,^[^2] We compare results from the `SSRMST` package with the `RMSTdesign` package. The `SSRMST` package calculates power based on simulations for trials with Weibull distributed survival times. 
+
+The accrual rate, accrual period, trial time, Weibull shape and scale parameters of the control (arm0) and treatment (arm 1) distributions, and tau were set according to the example. The results from the `ssrmst` function are shown below. 
+```{r}
+ac_rate   = 30
+ac_period = 70
+tot_time  = 908
+shape0 = 1.05
+shape1 = 1.05
+scale0 = 8573
+scale1 = 8573
+tau  = 900
+ssrmst(ac_rate=ac_rate, ac_period=ac_period, tot_time=tot_time, tau=tau, shape0=shape0, scale0=scale0, shape1=shape1, scale1=scale1, seed=2017)
+```
+Using `RMSTdesign`, the following code calculates the power under the same trial design assumptions. 
+```{r}
+arm0<-survdefWeibull(shape = shape0, scale = scale0)
+arm1<-survdefWeibull(shape = shape1, scale = scale1)
+
+RMSTpow(arm0, arm1, k1=70, k2=908-70, tau = 900, n=30*70)
+```
+We see that we get similar results with the two packages, and that, as expected under the null scenario, the null hypothesis is rejected about 2.5% of the time, which is equal to the one-sided alpha level. 
+
+Next, consider a scenario where the alternative hypothesis is true and compare the power obtained using the two packages. 
+```{r}
+arm1alt<-survdefWeibull(shape = shape1, scale = 16000)
+plotsurvdef(arm0, arm1alt, xupper = 1000)
+
+ssrmst(ac_rate=ac_rate, ac_period=ac_period, tot_time=tot_time, tau=tau, shape0=shape0, scale0=scale0, shape1=shape1, scale1=16000, seed=2017)
+
+RMSTpow(arm0, arm1alt, k1=70, k2=908-70, tau = 900, n=30*70)
+```
+Again the power returned by both packages is similar: 91.7% for the `SSRMST` package, and 91.1% for the `RMSTpow` package. 
+
+[^1]: Scirica BM, Bhatt DL, et al. Saxagliptin and Cardiovascular Outcomes in Patients with Type 2 Diabetes Mellitus. N Engl J Med. 2013, 369, 1317-26.
+[^2]: https://cran.r-project.org/web/packages/SSRMST/vignettes/vignette-ssrmst.html

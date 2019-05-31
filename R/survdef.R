@@ -12,7 +12,12 @@
 #' equal to `haz` over the intervals `[0, t_1), [t_1, t_2), \dots, [t_m, Inf)`
 #' where `t_i` are the entries of `times` and `times` has length `m`. One of
 #' `haz`, `surv` must be specified.
-#' @param surv a vector of survival probabilities of length<=10 corresponding to times.
+#' @param surv a vector of survival probabilities of length<=10 corresponding to
+#' `times`. If `surv` is specified, the survival distribution has constant hazard
+#' over the intervals `[0, t_1), [t_1, t_2), \dots, [t_m, Inf)`
+#' where `t_i` are the entries of `times` and `times` has length `m+1`. The hazards
+#' are calculated so that the curve passes through each entry in `surv` at the
+#' corresponding time from `times`. One of `haz`, `surv` must be specified.
 #' @param times a vector of the same length as surv (if surv is specified) or
 #' one element shorter than haz (if haz is specified). No times term is required
 #'  if a single hazard is specified in haz.

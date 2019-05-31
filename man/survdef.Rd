@@ -14,7 +14,12 @@ equal to \code{haz} over the intervals \code{[0, t_1), [t_1, t_2), \dots, [t_m, 
 where \code{t_i} are the entries of \code{times} and \code{times} has length \code{m}. One of
 \code{haz}, \code{surv} must be specified.}
 
-\item{surv}{a vector of survival probabilities of length<=10 corresponding to times.}
+\item{surv}{a vector of survival probabilities of length<=10 corresponding to
+\code{times}. If \code{surv} is specified, the survival distribution has constant hazard
+over the intervals \code{[0, t_1), [t_1, t_2), \dots, [t_m, Inf)}
+where \code{t_i} are the entries of \code{times} and \code{times} has length \code{m+1}. The hazards
+are calculated so that the curve passes through each entry in \code{surv} at the
+corresponding time from \code{times}. One of \code{haz}, \code{surv} must be specified.}
 
 \item{times}{a vector of the same length as surv (if surv is specified) or
 one element shorter than haz (if haz is specified). No times term is required

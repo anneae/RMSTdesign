@@ -20,44 +20,44 @@ library(RMSTdesign)
 
 We use an example from the literature to demonstrate the use of the study design tools avaiable in the `RMSTdesign` package. This example was first presented in a paper by Royston and Parmar.[^1] They calculated the sample size required for a trial with mean survival time difference as the primary endpoint based on data from the GOG111 trial.[^2] Survival in the control arm was assumed to be piecewise exponential with survival probabilities at the end of years 1-8 equal to 0.771, 0.523, 0.342, 0.236, 0.172, 0.130, 0.100, 0.078, respectively, and the hazard ratio was assumed constant over time and equal to 0.71. 
 
-We can use `survdef` to define the survival distributions in the two groups, and `plotsurvdef` to plot them. To define `gogC`, we specify `times` as year 1-8 and `surv` as the survival probabilities at those times based on data from the GOG111 trial. This creates a survival distribution stored in `gogC` which is piecewise exponential with constant hazard on [0,1), [1,2), [2,3), etc. To define `gogT_PH`, we specify the hazard on the intervals [0,1), [1,2), [2,3), etc as 0.71 times the hazard on the intervals [0,1), [1,2), [2,3), etc. in the `gogC` group, or equivalently, the hazard at times 0, 1, 2, etc, which can be generated in R using the command `gogC$h(0:7)`. 
+We can use `survdef` to define the survival distributions in the two groups, and `plotsurvdef` to plot them. To define `gogC`, we specify `times` as year 1-8 and `surv` as the survival probabilities at those times based on data from the GOG111 trial. This creates a survival distribution stored in `gogC` which is piecewise exponential with constant hazard on [0,1), [1,2), [2,3), [3,4), [4,5), [5,6), [6,7), [7,$\infty$). To define `gogT_PH`, we specify the hazard on the intervals [0,1), [1,2), [2,3), [3,4), [4,5), [5,6), [6,7), [7,$\infty$) as 0.71 times the hazard on the same intervals in the `gogC` group, or equivalently, the hazard at times 0, 1, 2, 3, 4, 5, 6 and 7, which can be generated in R using the command `gogC$h(0:7)`. 
 ```{r}
 gogC<-survdef(times = 1:8, surv=c(.771, .523,.342,.236,.172,.130,.1,.078))
 gogT_PH<-survdef(times = 1:7, haz=0.71*gogC$h(0:7))
 plotsurvdef(gogC, gogT_PH, xupper = 10)
 ```
 
-The accrual period is set to  $k_1$= 3 years and the followup period to  $k_2$= 5 years, and $\tau$ is equal to 7.5 years. We can use `RMSTpow` to determine the sample size needed to achieve 90% power with a one-sided type I error level of 0.025 (the default value). 
+The accrual period is set to  $k_1$= 3 years and the followup period to $k_2$= 5 years, and the restriction time to $\tau$= 7.5 years. We can use `RMSTpow` to determine the sample size needed to achieve 90% power with a one-sided type I error level of 0.025 (the default value). 
 ```{r}
 RMSTpow(gogC, gogT_PH, 3, 5, 7.5, power = 0.9)
 ```
 
-The required sample size is 436. We have a 96% chance of being able to estimate the difference in mean survival time using the unmodified area under the Kaplan-Meier curve, which is reasonable. 
+The required sample size is 436. This design proveds a 96% likelihood that the difference in mean survival time is estimable using the Kaplan-Meier estimator, which is reasonable.
 
-`RMSTpow` can perform simulations to determine empirical power if we add the option `sim=T`. The following code performs 1000 simulations, and uses the tau_star modification if necessary, which is the default method. 
+`RMSTpow` can perform simulations to determine empirical power if we add the option `sim=T`. The following code performs 1000 simulations, and uses the `tau_star` modification if necessary, which is the default method. 
 ```{r}
 set.seed(51719)
 mytest1<-RMSTpow(gogC, gogT_PH, 3, 5, 7.5, power = 0.9, sim = T, M=1000)
 mytest1
 ```
-We see that the empirical power was 89.7%, and empirical probability the unmodified Kaplan-Meier estimator could be used was 0.968. The mean truncation time used in practice was 7.49 years with a standard deviation of 0.03.
+We see that the empirical power was 89.7%, and empirical probability the unmodified Kaplan-Meier estimator could be used was 0.968. The mean truncation time used in practice was 7.49 years with a standard deviation of 0.03 years.
 
 The sample size estimate presented in Royston and Parmar for this scenario was 461. The disparity between the sample sizes is likely due to different approaches to estimating mean survival time difference and its variance; Royston and Parmar used flexible parametric models. 
 
-We may be interested in the trial design with the smallest total sample size, which is achieved when all patients are followed to time $\tau$ The following code determines the sample size needed for a trial where everyone is followed time time $\tau$ = 7.5 years:
+We may be interested in the trial design with the smallest total sample size, which is achieved when all patients are followed to time $\tau$. The following code determines the sample size needed for a trial where everyone is followed time time $\tau$ = 7.5 years:
 ```{r}
 RMSTpow(gogC, gogT_PH, 0, 7.5, 7.5, power = 0.9)
 ```
-In the trial setting described, the smallest trial with 90% power requires 432 patients. Following all patients until time $\tau$ offered almost no sample size savings compared to the original administrative censoring scheme. In this case, we have 100% chance of being able to estimate the mean survival time difference without modification, as no patients are censored before time $\tau$ 
+In the trial setting described, the smallest trial with 90% power requires 432 patients. Following all patients until time $\tau$ offered almost no sample size savings compared to the original administrative censoring scheme. This design provides a 100% chance the mean survival difference will be Kaplan-Meier estimablen, as no patients are censored before time $\tau$ 
 
-Alternatively, we may be interested in the trial with the shortest duration given a certain accrual rate. If we assume the accrual rate is 145 patients per year, the following code will find the shortest duration trial that achieves 90% power and 95% chance the mean survival difference is estimable at time $\tau$
+Alternatively, we may be interested in the trial with the shortest duration, given a certain accrual rate. If we assume the accrual rate is 145 patients per year, the following code will find the shortest duration trial that achieves 90% power and 95% chance the mean survival difference is Kaplan-Meier estimable at time $\tau$.
 ```{r}
 shortest_duration(gogC, gogT_PH, 7.5, .9, 145, pKME =  .95)
 ```
 
-We see that the shortest trial is 7.95 years long. In this example, because $\tau$=7.5, the shortest duration trial is not much shorter than the initial trial duration of 8 years.
+We see that the shortest duration trial is 7.95 years long. In this example, because $\tau$=7.5, the shortest duration trial is not much shorter than the initial trial duration of 8 years.
 
-Finally, we illustrate the use of Table 2 from our paper. In situations where the survival distributions can be approximated with exponential distributions, Table 2 can be used to get rough sample size estimates without a computer. For example, an exponential distribution with rate 0.3339 approximates the control group survival distribution from the GOG111 trial. From Table 2, for 90% power, with an expected hazard ratio of 0.7 (close to the hazard ratio of interest, 0.71), 550 patients are required if $\tau$ is selected as the 75th percentile of control group survival (4.2 years), and 418 if $\tau$ is the 90th percentile (6.9 years). These rough estimates are useful to determine whether mean survival time is a feasible endpoint, and to inform a guess of accrual time, which can then be input in our R-package along with other design parameters to refine the design. 
+Finally, we illustrate the use of Table 2 from our paper. In situations where the survival distributions can be approximated with exponential distributions, Table 2 can be used to get rough sample size estimates without a computer. For example, an exponential distribution with rate 0.3339 approximates the control group survival distribution from the GOG111 trial. From Table 2, for 90% power, with an expected hazard ratio of 0.7 (close to the hazard ratio of interest, 0.71), 550 patients are required if $\tau$ is selected as the 75th percentile of control group survival (4.2 years), and 418 if $\tau$ is the 90th percentile (6.9 years). These rough estimates are useful to determine whether mean survival time may be a feasible endpoint, and to inform a guess of accrual time, which can then be input in our R-package along with other design parameters to refine the design. 
 
 The following code shows how we obtained the rate of 0.3339 and how the same sample sizes could have been obtained using `RMSTpow` rather than Table 2. First, we determine the rate parameter of the exponential distribution that approximates the survival curve from the GOG111 trial data by modelling the log survival probabilities as a function of time. Then, we used `survdef` to define the control group survival distribution, and the treatment group survival distribution corresponding to a hazard ratio of 0.7. (We are using 0.7 because sample sizes for a hazard ratio of 0.7 are shown in Table 2, and we are trying to match Table 2.) We plot both curves, along with the survival curve we were trying to approximate for the control group (in red). 
 ```{r}
@@ -72,7 +72,10 @@ gogTexp<-survdef(haz=0.7*gogCexp$h(0))
 # Plot the two survival distributions. Overlay the originial piecewise exponential control group distribution
 plotsurvdef(gogCexp, gogTexp, xupper = 10)
 lines(seq(0, 10, .01), gogC$S(seq(0, 10, .01)), col = 'red')
+```
 
+Next, we use the `RMSTpow` function to determine the required sample size if $\tau$ is selected as the 75th percentile of control group survival (4.2 years), and if $\tau$ is the 90th percentile (6.9 years). 
+```{r}
 # Show that 6.9 years corresponds to a survival probability of 0.1, and 4.2 corresponds to a survival probability of 0.25:
 qexp(0.1, rate = lambda, lower.tail = F)
 qexp(0.25, rate = lambda, lower.tail = F)
@@ -84,7 +87,7 @@ RMSTpow(gogCexp, gogTexp, 0, qexp(0.25, rate = lambda, lower.tail = F),
         qexp(0.25, rate = lambda, lower.tail = F), power = 0.9)
 ```
 
-We see that the numbers obtained match Table 2. If we had instead used a hazard ratio of 0.71, exactly what was observed in the GOG111 trial, the sample size required would have been larger.
+We see that the numbers obtained match Table 2. If we had instead used a hazard ratio of 0.71, exactly what was observed in the GOG111 trial, the required sample size would have been larger.
 ```{r}
 gogTexp<-survdef(haz=0.71*gogCexp$h(0))
 RMSTpow(gogCexp, gogTexp, 0, qexp(0.1, rate = lambda, lower.tail = F),

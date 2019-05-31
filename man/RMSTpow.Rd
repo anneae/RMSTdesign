@@ -38,7 +38,7 @@ amount of time (trial length times 1000) will lead to problems if the
 \item{M}{number of simualations. Default is 1000.}
 
 \item{method}{modification to be used in simulations if the Kaplan-Meier
-estimator is not defined at time \code{tau} in either group. Default is 'tau_star',
+estimate is not defined at time \code{tau} in either group. Default is 'tau_star',
 which changes the restriction time to the last censoring time,
 if the last observation is censored at a time earlier than \code{tau}.
 Other possible values are 'gill', 'efron', 'tau_star', 'risk1', 'risk2',
@@ -53,7 +53,12 @@ a list with components
 \item{n}{the user specified n, or if n was left blank, the n needed to achieve the user-specified power.}
 \item{powerRMST}{the user specified power, or if power was left blank, the asymptotic power of the RMST test.}
 \item{powerLR}{the asymptotic power of the log-rank test.}
-\item{pKME}{the probability that you will be able to estimate RMST difference at time tau using the standard Kaplan-Meier estimator.}
+\item{pKME}{the probability that you will be able to estimate RMST difference
+at time tau using the standard Kaplan-Meier estimator. If the last observation
+in either group is censored, and the censoring time is less than tau, the
+Kaplan-Meier estimate is not defined through time tau, and the RMST difference
+cannot be estimated using the standard area under the Kaplan-Meier curve. A
+modified estimator must be used.}
 \item{plotvals}{a list used for generating plots, returned if \code{plot = T},
 with components:}
 \itemize{
@@ -79,7 +84,7 @@ with components:}
 }
 }
 \description{
-Determine the asmymptotic power of the test of RMST under a given trial design, or
+Determine the asymptotic power of the test of RMST under a given trial design, or
 calculate the samples size needed to achieve a desired power.
 }
 \examples{

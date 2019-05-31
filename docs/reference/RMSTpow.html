@@ -32,7 +32,7 @@
 
 <meta property="og:title" content="Sample Size and Power for the Test of the Difference in Restricted Mean Survival Time — RMSTpow" />
 
-<meta property="og:description" content="Determine the asmymptotic power of the test of RMST under a given trial design, or
+<meta property="og:description" content="Determine the asymptotic power of the test of RMST under a given trial design, or
 calculate the samples size needed to achieve a desired power." />
 <meta name="twitter:card" content="summary" />
 
@@ -125,7 +125,7 @@ calculate the samples size needed to achieve a desired power." />
 
     <div class="ref-description">
     
-    <p>Determine the asmymptotic power of the test of RMST under a given trial design, or
+    <p>Determine the asymptotic power of the test of RMST under a given trial design, or
 calculate the samples size needed to achieve a desired power.</p>
     
     </div>
@@ -188,7 +188,7 @@ amount of time (trial length times 1000) will lead to problems if the
     <tr>
       <th>method</th>
       <td><p>modification to be used in simulations if the Kaplan-Meier
-estimator is not defined at time <code>tau</code> in either group. Default is 'tau_star',
+estimate is not defined at time <code>tau</code> in either group. Default is 'tau_star',
 which changes the restriction time to the last censoring time,
 if the last observation is censored at a time earlier than <code>tau</code>.
 Other possible values are 'gill', 'efron', 'tau_star', 'risk1', 'risk2',
@@ -208,7 +208,12 @@ irrespective of the value of <code>tau</code>.</p></td>
 <dt>n</dt><dd><p>the user specified n, or if n was left blank, the n needed to achieve the user-specified power.</p></dd>
 <dt>powerRMST</dt><dd><p>the user specified power, or if power was left blank, the asymptotic power of the RMST test.</p></dd>
 <dt>powerLR</dt><dd><p>the asymptotic power of the log-rank test.</p></dd>
-<dt>pKME</dt><dd><p>the probability that you will be able to estimate RMST difference at time tau using the standard Kaplan-Meier estimator.</p></dd>
+<dt>pKME</dt><dd><p>the probability that you will be able to estimate RMST difference
+at time tau using the standard Kaplan-Meier estimator. If the last observation
+in either group is censored, and the censoring time is less than tau, the
+Kaplan-Meier estimate is not defined through time tau, and the RMST difference
+cannot be estimated using the standard area under the Kaplan-Meier curve. A
+modified estimator must be used.</p></dd>
 <dt>plotvals</dt><dd><p>a list used for generating plots, returned if <code>plot = T</code>,
 with components:</p></dd>
 

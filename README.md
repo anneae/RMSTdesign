@@ -39,8 +39,23 @@ RMSTpow(con, trt, k1 = 1, k2 = 3, tau = 3, power = 0.8)
 #> $powerRMST
 #> [1] 0.8004313
 #> 
-#> $powerLR
-#> [1] 0.9033624
+#> $powerRMSTToverC
+#> [1] 0.8004313
+#> 
+#> $powerRMSTCoverT
+#> [1] NA
+#> 
+#> $powerLRToverC
+#> [1] 0.9033999
+#> 
+#> $powerLRCoverT
+#> [1] NA
+#> 
+#> $powerLRtauToverC
+#> [1] 0.8707378
+#> 
+#> $powerLRtauCoverT
+#> [1] NA
 #> 
 #> $pKME
 #> [1] 1

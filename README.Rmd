@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of `RMSTdesign` is to make it easy to design clinical trials with the difference in restricted mean survival time as the primary endpoint. This includes calcuating asymptotic power or sample size under user-specified design parameters and performing simulations to determine the operating characteristics of the test of restricted mean survival time. 
+The goal of `RMSTdesign` is to make it easy to design clinical trials with the difference in restricted mean survival time as the primary endpoint. This includes calcuating asymptotic power or sample size under user-specified design parameters and performing simulations to determine the operating characteristics of the test of restricted mean survival time.  
 
 ## Installation
 

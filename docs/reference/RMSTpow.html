@@ -95,6 +95,9 @@ calculate the samples size needed to achieve a desired power." />
     <li>
       <a href="../articles/Optimal-trial-design.html">Using RMSTdesign to Find Optimal Trial Designs</a>
     </li>
+    <li>
+      <a href="../articles/RMSTdesign-package-validation.html">RMSTdesign-package-validation</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -131,8 +134,8 @@ calculate the samples size needed to achieve a desired power.</p>
     </div>
 
     <pre class="usage"><span class='fu'>RMSTpow</span>(<span class='no'>survdefC</span>, <span class='no'>survdefT</span>, <span class='no'>k1</span>, <span class='no'>k2</span>, <span class='no'>tau</span>, <span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>power</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
-  <span class='kw'>plot</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>sim</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>M</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"tau_star"</span>,
-  <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>0.025</span>)</pre>
+  <span class='kw'>plot</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>sim</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>M</span> <span class='kw'>=</span> <span class='fl'>1000</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"tau_star"</span>, <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
+  <span class='kw'>two.sided</span> <span class='kw'>=</span> <span class='no'>F</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -169,7 +172,14 @@ Either <code>n</code> or <code>power</code> can be specified, and the other valu
     </tr>
     <tr>
       <th>plot</th>
-      <td><p>if T, plots of power versus each design parameter will be produced. Default is F.</p></td>
+      <td><p>if T, plots of the assumed survival distributions and power
+as a function of sample size, accrual time ka1and follow-up time k2 will be produced.
+Default is F.
+The power of the RMST test, the log-rank test using all available followup and
+the log-rank test using only followup to time tau after randomization will be
+displayed. If two-sided=T, the power of the test for superiorty (treatment over
+control) and inferiority (control over treatment), are represented with solid
+and dashed lines, respectively.</p></td>
     </tr>
     <tr>
       <th>sim</th>
@@ -198,39 +208,58 @@ irrespective of the value of <code>tau</code>.</p></td>
     </tr>
     <tr>
       <th>alpha</th>
-      <td><p>one-sided type I error level. Default is 0.025.</p></td>
+      <td><p>type I error level. Default is 0.025 if 'two.sided'=F and 0.05
+if 'two.sided'=T.</p></td>
+    </tr>
+    <tr>
+      <th>two.sided</th>
+      <td><p>whether a two-sided test is desired. Default is F, meaning that
+all reported power values correspond to a test of the superiority of treatment
+over control. If set to T, the power for a test of superiority (treatment over control)
+and inferiority (control over treatment) will be reported separately in the results;
+the power of a two-sided test is the sum of two.</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>a list with components</p>
-<dt>n</dt><dd><p>the user specified n, or if n was left blank, the n needed to achieve the user-specified power.</p></dd>
-<dt>powerRMST</dt><dd><p>the user specified power, or if power was left blank, the asymptotic power of the RMST test.</p></dd>
-<dt>powerLR</dt><dd><p>the asymptotic power of the log-rank test.</p></dd>
+<dt>n</dt><dd><p>the user-specified n, or if n was left blank, the n needed to achieve the user-specified power.</p></dd>
+<dt>powerRMST</dt><dd><p>the user-specified power, or if power was left blank, the asymptotic power of the RMST test.</p></dd>
+<dt>powerRMSToverC</dt><dd><p>the asymptotic power for a test of superiority of treatment over control.</p></dd>
+<dt>powerRMSCoverT</dt><dd><p>the asymptotic power for a test of superiority of control over treatment.
+If a one-sided test is specified, this is set to NA.</p></dd>
+<dt>powerLRToverC</dt><dd><p>the asymptotic power of the log-rank test of superiority
+of treatment over control.</p></dd>
+<dt>powerLRCoverT</dt><dd><p>the asymptotic power of the log-rank test of superiority
+of control over treatment. If a one-sided test is specified, this is set to NA.</p></dd>
+<dt>powerLRtauToverC</dt><dd><p>the asymptotic power of the log-rank test of superiority
+of treatment over control, using only data up to time tau after randomization.</p></dd>
+<dt>powerLRtauCoverT</dt><dd><p>the asymptotic power of the log-rank test of superiority
+of control over treatment, using only data up to time tau after randomization.
+If a one-sided test is specified, this is set to NA.</p></dd>
 <dt>pKME</dt><dd><p>the probability that you will be able to estimate RMST difference
 at time tau using the standard Kaplan-Meier estimator. If the last observation
 in either group is censored, and the censoring time is less than tau, the
 Kaplan-Meier estimate is not defined through time tau, and the RMST difference
 cannot be estimated using the standard area under the Kaplan-Meier curve. A
 modified estimator must be used.</p></dd>
-<dt>plotvals</dt><dd><p>a list used for generating plots, returned if <code>plot = T</code>,
-with components:</p></dd>
-
-<code>n_vec</code> a vector of sample sizes near the selected sample size
-<code>n_pow</code> power of the RMST based test for the values in n_vec, holding k1, k2 and tau constant  
-<code>k1_vec</code> a vector of accrual periods near the specified k1
-<code>k1_pow</code> power of the RMST based test for the values in k1_vec, holding n, tau and total trial length constant
-<code>k2_vec</code> a vector of follow-up periods near the specified k2
-<code>k2_pow</code> power of the RMST based test for the values in k2_vec, holding n, k1 and tau constant  
-<code>tau_vec</code> a vector of restriction times near the specified tau
-<code>tau_pow</code> power of the RMST based test for the values in tau_vec, holding n, k1 and k2 constant
-
 <dt>simout</dt><dd><p>a list returned if <code>sim = T</code>, with components:</p></dd>
 
 
-<code>emppowRMST</code> empirical power of the RMST test.
-<code>emppowLR</code> empirical power of the log-rank test.
+<code>emppowRMSTToverC</code> empirical power of the RMST test for the superiority of
+treatment over control.
+<code>emppowRMSTCoverT</code> empirical power of the RMST test for the superiority of
+control over treatment. If a one-sided test is specified, this is set to NA.
+<code>emppowLRToverC</code> empirical power of the log-rank test for the superiority of
+treatment over control.
+<code>emppowLRCoverT</code> empirical power of the log-rank testthe superiority of
+control over treatment. If a one-sided test is specified, this is set to NA.
+<code>emppowLRtauToverC</code> empirical power of the log-rank test for the superiority of
+treatment over control, using only data up to time tau after randomization.
+<code>emppowLRtauCoverT</code> empirical power of the log-rank testthe superiority of
+control over treatment, using only data up to time tau after randomization.
+If a one-sided test is specified, this is set to NA.
 <code>emppKME</code> proportion of simulations where the standard KM estimator was used.
 <code>meandiff</code> mean estimated difference in RMST across the simulated datasets.
 <code>SDdiff</code> standard deviation of the estimated difference in RMST across the simulated datasets.
@@ -249,8 +278,23 @@ with components:</p></dd>
 #&gt; $powerRMST
 #&gt; [1] 0.8008182
 #&gt; 
-#&gt; $powerLR
-#&gt; [1] 0.870807
+#&gt; $powerRMSTToverC
+#&gt; [1] 0.8008182
+#&gt; 
+#&gt; $powerRMSTCoverT
+#&gt; [1] NA
+#&gt; 
+#&gt; $powerLRToverC
+#&gt; [1] 0.8708721
+#&gt; 
+#&gt; $powerLRCoverT
+#&gt; [1] NA
+#&gt; 
+#&gt; $powerLRtauToverC
+#&gt; [1] 0.8708721
+#&gt; 
+#&gt; $powerLRtauCoverT
+#&gt; [1] NA
 #&gt; 
 #&gt; $pKME
 #&gt; [1] 1
@@ -260,8 +304,23 @@ with components:</p></dd>
 #&gt; $powerRMST
 #&gt; [1] 0.8008182
 #&gt; 
-#&gt; $powerLR
-#&gt; [1] 0.870807
+#&gt; $powerRMSTToverC
+#&gt; [1] 0.8008182
+#&gt; 
+#&gt; $powerRMSTCoverT
+#&gt; [1] NA
+#&gt; 
+#&gt; $powerLRToverC
+#&gt; [1] 0.8708721
+#&gt; 
+#&gt; $powerLRCoverT
+#&gt; [1] NA
+#&gt; 
+#&gt; $powerLRtauToverC
+#&gt; [1] 0.8708721
+#&gt; 
+#&gt; $powerLRtauCoverT
+#&gt; [1] NA
 #&gt; 
 #&gt; $pKME
 #&gt; [1] 1

@@ -61,6 +61,9 @@
     <li>
       <a href="../articles/Optimal-trial-design.html">Using RMSTdesign to Find Optimal Trial Designs</a>
     </li>
+    <li>
+      <a href="../articles/RMSTdesign-package-validation.html">RMSTdesign-package-validation</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -95,7 +98,7 @@
     
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RMSTdesign)</code></pre></div>
 <p>We use a simple example to discuss different criteria for selecting an optimal trial and how to do it. In some cases the optimal trial design may be the one that has the smallest sample size, regardless of duration; in other cases it may be the one with the shortest duration, regardless of sample size, and in other cases, you may be looking for a balance between the two.</p>
-<p>We consider planning a trial where we expect survival time distributions in both the control and treatment groups follow exponential distributions, which implies proportional hazards. We expect the median survival time in the control group to be 3 years and the new treatment to reduce mortality risk by 33% (hazard ratio = 0.67). In the disease we are studying, 3 years is a clinically important landmark, so we choose <span class="math inline">\(\tau\)</span>= 3 years. We want to estimate the sample size to achieve 80% power with a one-sided Type I error of 0.025.</p>
+<p>We consider planning a trial where we expect survival time distributions in both the control and treatment groups follow exponential distributions, which implies proportional hazards. We expect the median survival time in the control group to be 3 years and the new treatment to reduce mortality risk by 33% (hazard ratio = 0.67). In the disease we are studying, 3 years is a clinically important landmark, so we choose <span class="math inline">\(\tau\)</span>= 3 years. We plan to do a one-sided test, and we want to estimate the sample size to achieve 80% power with a one-sided Type I error of 0.025.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">con&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">times =</span> <span class="dv">3</span>, <span class="dt">surv =</span> <span class="fl">0.5</span>) 
 trt&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="fl">0.67</span><span class="op">*</span>con<span class="op">$</span><span class="kw">h</span>(<span class="dv">1</span>))
 <span class="kw"><a href="../reference/plotsurvdef.html">plotsurvdef</a></span>(con, trt, <span class="dv">5</span>)</code></pre></div>
@@ -108,12 +111,27 @@ trt&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(
 <span class="co">#&gt; $powerRMST</span>
 <span class="co">#&gt; [1] 0.8008182</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.870807</span>
+<span class="co">#&gt; $powerRMSTToverC</span>
+<span class="co">#&gt; [1] 0.8008182</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.8708721</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.8708721</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauCoverT</span>
+<span class="co">#&gt; [1] NA</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $pKME</span>
 <span class="co">#&gt; [1] 1</span></code></pre></div>
-<p>The trial with all patients followed to time <span class="math inline">\(\tau\)</span> is optimal in terms of minimal sample size. Also, you are sure to be able to estimate RMST difference at time <span class="math inline">\(\tau\)</span> because no patients will be censored before time <span class="math inline">\(\tau\)</span>. Note that extending followup time beyong <span class="math inline">\(\tau\)</span> provides no benefit in terms of either power or pKME (the probability RMST difference will be estimable with the Kaplan-Meier estimator), though it does increase the power of the standard log-rank test.</p>
+<p>The trial with all patients followed to time <span class="math inline">\(\tau\)</span> is optimal in terms of minimal sample size. Also, you are sure to be able to estimate RMST difference at time <span class="math inline">\(\tau\)</span> because no patients will be censored before time <span class="math inline">\(\tau\)</span>. Note that extending followup time beyong <span class="math inline">\(\tau\)</span> provides no benefit in terms of either power or pKME (the probability RMST difference will be estimable with the Kaplan-Meier estimator), though it does increase the power of the standard log-rank test calculated with all avaiable follow-up (the quantity <code>powerLRToverC</code> in the output below).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(con, trt, <span class="dt">k1 =</span> <span class="dv">0</span>, <span class="dt">k2 =</span> <span class="dv">10</span>, <span class="dt">tau =</span> <span class="dv">3</span>, <span class="dt">power =</span> <span class="fl">0.8</span>)
 <span class="co">#&gt; $n</span>
 <span class="co">#&gt; [1] 552</span>
@@ -121,14 +139,32 @@ trt&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(
 <span class="co">#&gt; $powerRMST</span>
 <span class="co">#&gt; [1] 0.8008182</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.9908278</span>
+<span class="co">#&gt; $powerRMSTToverC</span>
+<span class="co">#&gt; [1] 0.8008182</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.9908296</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.8709119</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauCoverT</span>
+<span class="co">#&gt; [1] NA</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $pKME</span>
 <span class="co">#&gt; [1] 1</span></code></pre></div>
-<p>We may also be interested in the trial design with the shortest duration. Our function shortest_duration can find that design, but you need to input an accrual rate. Let’s assume the accrual rate is 552/4 = 138 patients per year. Notice that under this assumption, accruing 552 patients takes 4 years, and a trial where you accrue 552 patients and follow all patients for 3 years takes 7 years to complete.</p>
+<p>We may also be interested in the trial design with the shortest duration. Our function <code>shortest_duration</code> can find that design, but you need to input an accrual rate. Let’s assume the accrual rate is 552/4 = 138 patients per year. Notice that under this assumption, accruing 552 patients takes 4 years, and a trial where you accrue 552 patients and follow all patients for 3 years takes 7 years to complete.</p>
 <p>This code finds the shortest duration trial that has the specified power and pKME (default is 0.95):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/shortest_duration.html">shortest_duration</a></span>(con, trt, <span class="dv">3</span>, .<span class="dv">8</span>, <span class="dv">552</span><span class="op">/</span><span class="dv">4</span>)
+<span class="co">#&gt; $n</span>
+<span class="co">#&gt; [1] 668</span>
+<span class="co">#&gt; </span>
 <span class="co">#&gt; $k1</span>
 <span class="co">#&gt; [1] 4.84058</span>
 <span class="co">#&gt; </span>
@@ -138,31 +174,46 @@ trt&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(
 <span class="co">#&gt; $duration</span>
 <span class="co">#&gt; [1] 4.84058</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 668</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
+<span class="co">#&gt; $powerRMSTToverC</span>
 <span class="co">#&gt; [1] 0.8006054</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.8586483</span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.8586702</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.8219996</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $pMKE</span>
 <span class="co">#&gt; [1] 1</span></code></pre></div>
 <p>The shortest duration trial enrolls 668 patients and takes 4.84 years to complete.</p>
-<p>Our shortest duration function also optimizes over sample size, within trial designs that have the shortest duration. For example, if we thought we could accrue 1000 patients per year, either a trial that recruits for the whole duration and lasts 3.013386 years, or a trial that recruits for 0.554 years, then follows patients for 2.459386 years for a total trial duration of 0.554 + 2.459386 = 3.013386 years will meet the required threshold for power and pKME, as shown below. However, the second trial needs about 1/6 as many patients (554 versus 3013). Our <code>shortest_duration</code> function will return the latter trial design, the smallest sample size trial out of the trials with the shortest duration.</p>
+<p>Our shortest duration function also optimizes over sample size, within trial designs that have the shortest duration. For example, if we thought we could accrue 1000 patients per year, either a trial that recruits for the whole duration and lasts 3.013386 years, or a trial that recruits for 0.554 years, then follows patients for 2.459386 years for a total trial duration of 0.554 + 2.459386 = 3.013386 years will meet the required threshold for power and pKME, as shown below. However, the second trial needs about 1/6 as many patients (554 versus 3012). Our <code>shortest_duration</code> function will return the latter trial design, the smallest sample size trial out of the trials with the shortest duration.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(con, trt, <span class="fl">3.013386</span>, <span class="dv">0</span>, <span class="dv">3</span>, <span class="fl">3.013386</span><span class="op">*</span><span class="dv">1000</span>)
 <span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 3013.386</span>
+<span class="co">#&gt; [1] 3012</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $powerRMST</span>
-<span class="co">#&gt; [1] 0.9996747</span>
+<span class="co">#&gt; [1] 0.9996733</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.9996483</span>
+<span class="co">#&gt; $powerRMSTToverC</span>
+<span class="co">#&gt; [1] 0.9996733</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.9996469</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.9996469</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauCoverT</span>
+<span class="co">#&gt; [1] NA</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $pKME</span>
-<span class="co">#&gt; [1] 0.9501112</span>
+<span class="co">#&gt; [1] 0.9500287</span>
 <span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(con, trt, <span class="fl">0.554</span>, <span class="fl">2.459386</span>, <span class="dv">3</span>, <span class="fl">0.554</span><span class="op">*</span><span class="dv">1000</span>)
 <span class="co">#&gt; $n</span>
 <span class="co">#&gt; [1] 554</span>
@@ -170,12 +221,30 @@ trt&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(
 <span class="co">#&gt; $powerRMST</span>
 <span class="co">#&gt; [1] 0.8011577</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.8483088</span>
+<span class="co">#&gt; $powerRMSTToverC</span>
+<span class="co">#&gt; [1] 0.8011577</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.848365</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.8483505</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauCoverT</span>
+<span class="co">#&gt; [1] NA</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $pKME</span>
 <span class="co">#&gt; [1] 0.9517473</span>
 <span class="kw"><a href="../reference/shortest_duration.html">shortest_duration</a></span>(con, trt, <span class="dv">3</span>, .<span class="dv">8</span>, <span class="dv">1000</span>)
+<span class="co">#&gt; $n</span>
+<span class="co">#&gt; [1] 554</span>
+<span class="co">#&gt; </span>
 <span class="co">#&gt; $k1</span>
 <span class="co">#&gt; [1] 0.554</span>
 <span class="co">#&gt; </span>
@@ -185,19 +254,22 @@ trt&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(
 <span class="co">#&gt; $duration</span>
 <span class="co">#&gt; [1] 3.013386</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 554</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
+<span class="co">#&gt; $powerRMSTToverC</span>
 <span class="co">#&gt; [1] 0.8011577</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.8483088</span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.848365</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.8483505</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $pMKE</span>
 <span class="co">#&gt; [1] 0.9517498</span></code></pre></div>
 <p>Sometimes a trial that is only a little longer than the shortest duration trial can offer a large reduction in sample size. One way to explore this is using our <code>shortest_duration</code> function with the option <code>altdesign = T</code>. You add a multiplier which defines the trial length you are willing to consider, relative to the shortest duration trial, on a multiplicative scale. For example, if you set <code>multiplier</code> = 1.1, the function will find the smallest sample size trial with duration equal to 1.1 times the shorest possible duration. In other words, you are willing to consider a trial that is 10% longer than the optimal trial. In the example above, the shortest possible trial was 4.84 years, so a multiplier of 1.1 indicates considering trials of length 5.3.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/shortest_duration.html">shortest_duration</a></span>(con, trt, <span class="dv">3</span>, .<span class="dv">8</span>, <span class="dv">552</span><span class="op">/</span><span class="dv">4</span>, <span class="dt">altdesign =</span> T, <span class="dt">multiplier =</span> <span class="fl">1.1</span>)
+<span class="co">#&gt; $n</span>
+<span class="co">#&gt; [1] 568</span>
+<span class="co">#&gt; </span>
 <span class="co">#&gt; $k1</span>
 <span class="co">#&gt; [1] 4.115942</span>
 <span class="co">#&gt; </span>
@@ -207,24 +279,20 @@ trt&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(
 <span class="co">#&gt; $duration</span>
 <span class="co">#&gt; [1] 5.318021</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 568</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
+<span class="co">#&gt; $powerRMSTToverC</span>
 <span class="co">#&gt; [1] 0.800984</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.8893425</span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.8894142</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.8410203</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $pMKE</span>
 <span class="co">#&gt; [1] 1</span></code></pre></div>
 <p>We see that by extending the trial by about half a year, we can reduce the number of required patients by 100.</p>
-<p>We now have several candidate trial designs. We can explore each design further by plotting power as a function of each design parameter using the <code>plot = T</code> option. We focus on the trial that enrolls 552 patients over 4 years, then follows them for 3 years. In the following plots, the red lines represent the power of the log-rank test and the black lines represent the power of the test for difference in RMST.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(con, trt, <span class="dt">k1 =</span> <span class="dv">4</span>, <span class="dt">k2 =</span> <span class="dv">3</span>, <span class="dt">tau =</span> <span class="dv">3</span>, <span class="dt">n =</span> <span class="dv">552</span>, <span class="dt">plot =</span> T)
-<span class="co">#&gt; [1] "Calculating power for different values of n..."</span>
-<span class="co">#&gt; [1] "Calculating power for different values of k1..."</span>
-<span class="co">#&gt; [1] "Calculating power for different values of k2..."</span>
-<span class="co">#&gt; [1] "Calculating power for different values of tau..."</span></code></pre></div>
+<p>We now have several candidate trial designs. We can explore each design further by plotting power as a function of each design parameter using the <code>plot = T</code> option. We focus on the trial that enrolls 552 patients over 4 years, then follows them for 3 years. In the following plots, the red lines represent the power of the log-rank test using all available followup, the blue lines represent the log-rank test using data to time <code>tau</code>, and the black lines represent the power of the test for difference in RMST restricted to time <code>tau</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(con, trt, <span class="dt">k1 =</span> <span class="dv">4</span>, <span class="dt">k2 =</span> <span class="dv">3</span>, <span class="dt">tau =</span> <span class="dv">3</span>, <span class="dt">n =</span> <span class="dv">552</span>, <span class="dt">plot =</span> T)</code></pre></div>
 <p><img src="Optimal-trial-design_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <pre><code>#&gt; $n
 #&gt; [1] 552
@@ -232,52 +300,26 @@ trt&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(
 #&gt; $powerRMST
 #&gt; [1] 0.8008182
 #&gt; 
-#&gt; $powerLR
-#&gt; [1] 0.9539324
+#&gt; $powerRMSTToverC
+#&gt; [1] 0.8008182
+#&gt; 
+#&gt; $powerRMSTCoverT
+#&gt; [1] NA
+#&gt; 
+#&gt; $powerLRToverC
+#&gt; [1] 0.9539556
+#&gt; 
+#&gt; $powerLRCoverT
+#&gt; [1] NA
+#&gt; 
+#&gt; $powerLRtauToverC
+#&gt; [1] 0.8709213
+#&gt; 
+#&gt; $powerLRtauCoverT
+#&gt; [1] NA
 #&gt; 
 #&gt; $pKME
-#&gt; [1] 1
-#&gt; 
-#&gt; $plot_val
-#&gt; $plot_val$n_vec
-#&gt;  [1] 276.0000 305.0526 334.1053 363.1579 392.2105 421.2632 450.3158
-#&gt;  [8] 479.3684 508.4211 537.4737 566.5263 595.5789 624.6316 653.6842
-#&gt; [15] 682.7368 711.7895 740.8421 769.8947 798.9474 828.0000
-#&gt; 
-#&gt; $plot_val$n_pow
-#&gt;  [1] 0.5092247 0.5496936 0.5878074 0.6235414 0.6569065 0.6879425 0.7167117
-#&gt;  [8] 0.7432944 0.7677836 0.7902819 0.8108977 0.8297427 0.8469299 0.8625715
-#&gt; [15] 0.8767777 0.8896556 0.9013082 0.9118340 0.9213262 0.9298732
-#&gt; 
-#&gt; $plot_val$k1_vec
-#&gt;  [1] 0.0000000 0.3157895 0.6315789 0.9473684 1.2631579 1.5789474 1.8947368
-#&gt;  [8] 2.2105263 2.5263158 2.8421053 3.1578947 3.4736842 3.7894737 4.1052632
-#&gt; [15] 4.4210526 4.7368421 5.0526316 5.3684211 5.6842105 6.0000000
-#&gt; 
-#&gt; $plot_val$k1_pow
-#&gt;  [1] 0.8008182 0.8008182 0.8008182 0.8008182 0.8008182 0.8008182 0.8008182
-#&gt;  [8] 0.8008182 0.8008182 0.8008182 0.8008182 0.8008182 0.8008182 0.8008182
-#&gt; [15] 0.8008182 0.8008182 0.8008182 0.8008182 0.8008182 0.8008182
-#&gt; 
-#&gt; $plot_val$k2_vec
-#&gt;  [1] 0.0000000 0.2368421 0.4736842 0.7105263 0.9473684 1.1842105 1.4210526
-#&gt;  [8] 1.6578947 1.8947368 2.1315789 2.3684211 2.6052632 2.8421053 3.0789474
-#&gt; [15] 3.3157895 3.5526316 3.7894737 4.0263158 4.2631579 4.5000000
-#&gt; 
-#&gt; $plot_val$k2_pow
-#&gt;  [1] 0.6978602 0.7283961 0.7515832 0.7685930 0.7805709 0.7887832 0.7941392
-#&gt;  [8] 0.7974340 0.7993120 0.8002738 0.8006717 0.8007941 0.8008176 0.8008182
-#&gt; [15] 0.8008182 0.8008182 0.8008182 0.8008182 0.8008182 0.8008182
-#&gt; 
-#&gt; $plot_val$tau_vec
-#&gt;  [1] 1.500000 1.657895 1.815789 1.973684 2.131579 2.289474 2.447368
-#&gt;  [8] 2.605263 2.763158 2.921053 3.078947 3.236842 3.394737 3.552632
-#&gt; [15] 3.710526 3.868421 4.026316 4.184211 4.342105 4.500000
-#&gt; 
-#&gt; $plot_val$tau_pow
-#&gt;  [1] 0.5445139 0.5824544 0.6174127 0.6495324 0.6789762 0.7059166 0.7305296
-#&gt;  [8] 0.7529898 0.7734670 0.7921239 0.8091144 0.8245811 0.8386508 0.8514404
-#&gt; [15] 0.8630416 0.8735793 0.8831027 0.8917706 0.8995338 0.9065984</code></pre>
+#&gt; [1] 1</code></pre>
 <p>The plots show us that we can reduce accrual time and maintain power, but that would mean we need to enroll the same number of patients in a shorter time, which may not be practical. We also see that we could reduce follow-up time by about a year without a significant loss in power.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(con, trt, <span class="dt">k1 =</span> <span class="dv">4</span>, <span class="dt">k2 =</span> <span class="dv">2</span>, <span class="dt">tau =</span> <span class="dv">3</span>, <span class="dt">n =</span> <span class="dv">552</span>)
 <span class="co">#&gt; $n</span>
@@ -286,17 +328,28 @@ trt&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(
 <span class="co">#&gt; $powerRMST</span>
 <span class="co">#&gt; [1] 0.7998204</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.9228799</span>
+<span class="co">#&gt; $powerRMSTToverC</span>
+<span class="co">#&gt; [1] 0.7998204</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.9229113</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.8597414</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauCoverT</span>
+<span class="co">#&gt; [1] NA</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $pKME</span>
 <span class="co">#&gt; [1] 1</span></code></pre></div>
 <p>We see that reducing <span class="math inline">\(k_2\)</span> to 2 went slightly too far, as power has dropped below 0.8. Using trial and error we find that <span class="math inline">\(k_2\)</span>=2.1 is adequate to preserves power and pKME, reducing total trial duration to 6.1 years.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(con, trt, <span class="dt">k1 =</span> <span class="dv">4</span>, <span class="dt">k2 =</span> <span class="fl">2.1</span>, <span class="dt">tau =</span> <span class="dv">3</span>, <span class="dt">n =</span> <span class="dv">552</span>, <span class="dt">plot =</span> T)
-<span class="co">#&gt; [1] "Calculating power for different values of n..."</span>
-<span class="co">#&gt; [1] "Calculating power for different values of k1..."</span>
-<span class="co">#&gt; [1] "Calculating power for different values of k2..."</span>
-<span class="co">#&gt; [1] "Calculating power for different values of tau..."</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(con, trt, <span class="dt">k1 =</span> <span class="dv">4</span>, <span class="dt">k2 =</span> <span class="fl">2.1</span>, <span class="dt">tau =</span> <span class="dv">3</span>, <span class="dt">n =</span> <span class="dv">552</span>, <span class="dt">plot =</span> T)</code></pre></div>
 <p><img src="Optimal-trial-design_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 <pre><code>#&gt; $n
 #&gt; [1] 552
@@ -304,53 +357,27 @@ trt&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(
 #&gt; $powerRMST
 #&gt; [1] 0.8001678
 #&gt; 
-#&gt; $powerLR
-#&gt; [1] 0.927015
+#&gt; $powerRMSTToverC
+#&gt; [1] 0.8001678
+#&gt; 
+#&gt; $powerRMSTCoverT
+#&gt; [1] NA
+#&gt; 
+#&gt; $powerLRToverC
+#&gt; [1] 0.9270544
+#&gt; 
+#&gt; $powerLRCoverT
+#&gt; [1] NA
+#&gt; 
+#&gt; $powerLRtauToverC
+#&gt; [1] 0.8619928
+#&gt; 
+#&gt; $powerLRtauCoverT
+#&gt; [1] NA
 #&gt; 
 #&gt; $pKME
-#&gt; [1] 1
-#&gt; 
-#&gt; $plot_val
-#&gt; $plot_val$n_vec
-#&gt;  [1] 276.0000 305.0526 334.1053 363.1579 392.2105 421.2632 450.3158
-#&gt;  [8] 479.3684 508.4211 537.4737 566.5263 595.5789 624.6316 653.6842
-#&gt; [15] 682.7368 711.7895 740.8421 769.8947 798.9474 828.0000
-#&gt; 
-#&gt; $plot_val$n_pow
-#&gt;  [1] 0.5085686 0.5490089 0.5871027 0.6228248 0.6561852 0.6872230 0.7159999
-#&gt;  [8] 0.7425953 0.7671015 0.7896202 0.8102593 0.8291299 0.8463443 0.8620143
-#&gt; [15] 0.8762496 0.8891570 0.9008390 0.9113938 0.9209146 0.9294892
-#&gt; 
-#&gt; $plot_val$k1_vec
-#&gt;  [1] 0.900000 1.168421 1.436842 1.705263 1.973684 2.242105 2.510526
-#&gt;  [8] 2.778947 3.047368 3.315789 3.584211 3.852632 4.121053 4.389474
-#&gt; [15] 4.657895 4.926316 5.194737 5.463158 5.731579 6.000000
-#&gt; 
-#&gt; $plot_val$k1_pow
-#&gt;  [1] 0.7956092 0.7977329 0.7985635 0.7990331 0.7993382 0.7995533 0.7997133
-#&gt;  [8] 0.7998372 0.7999359 0.8000165 0.8000836 0.8001403 0.8001888 0.8002309
-#&gt; [15] 0.8002677 0.8003001 0.8003289 0.8003547 0.8003779 0.8003988
-#&gt; 
-#&gt; $plot_val$k2_vec
-#&gt;  [1] 0.0000000 0.1657895 0.3315789 0.4973684 0.6631579 0.8289474 0.9947368
-#&gt;  [8] 1.1605263 1.3263158 1.4921053 1.6578947 1.8236842 1.9894737 2.1552632
-#&gt; [15] 2.3210526 2.4868421 2.6526316 2.8184211 2.9842105 3.1500000
-#&gt; 
-#&gt; $plot_val$k2_pow
-#&gt;  [1] 0.6978602 0.7200584 0.7385200 0.7535557 0.7656480 0.7751665 0.7825446
-#&gt;  [8] 0.7881030 0.7923420 0.7953497 0.7974340 0.7988477 0.7997828 0.8003440
-#&gt; [15] 0.8006182 0.8007524 0.8008050 0.8008173 0.8008182 0.8008182
-#&gt; 
-#&gt; $plot_val$tau_vec
-#&gt;  [1] 1.500000 1.657895 1.815789 1.973684 2.131579 2.289474 2.447368
-#&gt;  [8] 2.605263 2.763158 2.921053 3.078947 3.236842 3.394737 3.552632
-#&gt; [15] 3.710526 3.868421 4.026316 4.184211 4.342105 4.500000
-#&gt; 
-#&gt; $plot_val$tau_pow
-#&gt;  [1] 0.5445139 0.5824544 0.6174127 0.6495324 0.6789762 0.7059133 0.7305018
-#&gt;  [8] 0.7528866 0.7732130 0.7916589 0.8082685 0.8233470 0.8368055 0.8489910
-#&gt; [15] 0.8599114 0.8696633 0.8784697 0.8863035 0.8932920 0.8994459</code></pre>
-<p>The plots show us that, under the new design, reducing follow-up time will reduce power. Increasing sample size or shortening accrual while keeping sample size constant would increase power, but may not be desirable or possible. Increasing <span class="math inline">\(\tau\)</span> would increase power, which may be something to consider, but <span class="math inline">\(\tau\)</span> should be selected mainly based on clinical relevance. Similar plots could be used to explore and tweak the other candidate designs.</p>
+#&gt; [1] 1</code></pre>
+<p>The plots show us that, under the new design, reducing follow-up time will reduce power. Increasing sample size or shortening accrual while keeping sample size constant would increase power, but may not be desirable or possible. Similar plots could be used to explore and tweak the other candidate designs.</p>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

@@ -35,7 +35,8 @@
 <meta property="og:description" content="Find the trial with the shortest duration in calendar time with a specified
 power and probability that RMST difference will be estimable with the
 Kaplan-Meier estimator. Within all trials of that minimum duration, the
-function finds the one with the smallest sample size." />
+function finds the one with the smallest sample size. This function is based on
+a one-sided test of the superiority of the treatment arm." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -97,6 +98,9 @@ function finds the one with the smallest sample size." />
     <li>
       <a href="../articles/Optimal-trial-design.html">Using RMSTdesign to Find Optimal Trial Designs</a>
     </li>
+    <li>
+      <a href="../articles/RMSTdesign-package-validation.html">RMSTdesign-package-validation</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -130,7 +134,8 @@ function finds the one with the smallest sample size." />
     <p>Find the trial with the shortest duration in calendar time with a specified
 power and probability that RMST difference will be estimable with the
 Kaplan-Meier estimator. Within all trials of that minimum duration, the
-function finds the one with the smallest sample size.</p>
+function finds the one with the smallest sample size. This function is based on
+a one-sided test of the superiority of the treatment arm.</p>
     
     </div>
 
@@ -190,13 +195,18 @@ shortest possible trial. This argument is ignored if altdesign=F.</p></td>
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>a list with components:</p>
+<dt>n</dt><dd><p>total number of patients.</p></dd>
 <dt>k1</dt><dd><p>length of the accrual period. We assume subjects will accrue
 uniformly over the interval (0, k1) and then be followed until trial time
 k1+k2.</p></dd>
 <dt>k2</dt><dd><p>length of the follow-up period.</p></dd>
 <dt>duration</dt><dd><p>trial duration in calendar time, k1+k2.</p></dd>
-<dt>powerRMST</dt><dd><p>the asymptotic power of the RMST test.</p></dd>
-<dt>powerLR</dt><dd><p>the asymptotic power of the log-rank test.</p></dd>
+<dt>powerRMSTToverC</dt><dd><p>the asymptotic power of the RMST test for the superiority
+of treatment over control.</p></dd>
+<dt>powerLRToverC</dt><dd><p>the asymptotic power of the log-rank test using all available
+follow-up for the superiority of treatment over control.</p></dd>
+<dt>powerLRtauToverC</dt><dd><p>the asymptotic power of the log-rank test using follow-up to
+time tau for the superiority of treatment over control.</p></dd>
 <dt>pKME</dt><dd><p>the probability that you will be able to estimate RMST
 difference at time tau using the standard Kaplan-Meier estimator.</p></dd>
 
@@ -205,7 +215,10 @@ difference at time tau using the standard Kaplan-Meier estimator.</p></dd>
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='no'>con</span><span class='kw'>&lt;-</span><span class='fu'><a href='survdef.html'>survdef</a></span>(<span class='kw'>times</span> <span class='kw'>=</span> <span class='fl'>3</span>, <span class='kw'>surv</span> <span class='kw'>=</span> <span class='fl'>0.5</span>)
 <span class='no'>trt</span><span class='kw'>&lt;-</span><span class='fu'><a href='survdef.html'>survdef</a></span>(<span class='kw'>haz</span> <span class='kw'>=</span> <span class='fl'>0.67</span>*<span class='no'>con</span>$<span class='fu'>h</span>(<span class='fl'>1</span>))
-<span class='fu'>shortest_duration</span>(<span class='no'>con</span>, <span class='no'>trt</span>, <span class='fl'>3</span>, <span class='fl'>.8</span>, <span class='fl'>552</span>/<span class='fl'>4</span>)</div><div class='output co'>#&gt; $k1
+<span class='fu'>shortest_duration</span>(<span class='no'>con</span>, <span class='no'>trt</span>, <span class='fl'>3</span>, <span class='fl'>.8</span>, <span class='fl'>552</span>/<span class='fl'>4</span>)</div><div class='output co'>#&gt; $n
+#&gt; [1] 668
+#&gt; 
+#&gt; $k1
 #&gt; [1] 4.84058
 #&gt; 
 #&gt; $k2
@@ -214,16 +227,16 @@ difference at time tau using the standard Kaplan-Meier estimator.</p></dd>
 #&gt; $duration
 #&gt; [1] 4.84058
 #&gt; 
-#&gt; $n
-#&gt; [1] 668
-#&gt; 
-#&gt; $powerRMST
+#&gt; $powerRMSTToverC
 #&gt; [1] 0.8006054
 #&gt; 
-#&gt; $powerLR
-#&gt; [1] 0.8586483
+#&gt; $powerLRToverC
+#&gt; [1] 0.8586702
 #&gt; 
-#&gt; $pKME
+#&gt; $powerLRtauToverC
+#&gt; [1] 0.8219996
+#&gt; 
+#&gt; $pMKE
 #&gt; [1] 1
 #&gt; </div></pre>
   </div>

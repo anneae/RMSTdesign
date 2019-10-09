@@ -61,6 +61,9 @@
     <li>
       <a href="../articles/Optimal-trial-design.html">Using RMSTdesign to Find Optimal Trial Designs</a>
     </li>
+    <li>
+      <a href="../articles/RMSTdesign-package-validation.html">RMSTdesign-package-validation</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -127,12 +130,27 @@ arm1&lt;-<span class="kw"><a href="../reference/survdefWeibull.html">survdefWeib
 <span class="co">#&gt; $powerRMST</span>
 <span class="co">#&gt; [1] 0.025</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
+<span class="co">#&gt; $powerRMSTToverC</span>
 <span class="co">#&gt; [1] 0.025</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.025</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.025</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauCoverT</span>
+<span class="co">#&gt; [1] NA</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $pKME</span>
 <span class="co">#&gt; [1] 1</span></code></pre></div>
-<p>We see that we get similar results with the two packages, and that, as expected under the null scenario, the null hypothesis is rejected about 2.5% of the time, which is equal to the one-sided alpha level.</p>
+<p>In the output of the <code>RMSTpow</code> function, we should focus on the quantity <code>powerRMSTToverC</code>, which is the asymptotic power of the restricted mean-based test for the superiority of treatment over control. The output of the <code>ssrmst</code> function gives the empirical power of the same test based on simulations (2000 simulations by default). We see that we get similar results with the two packages, and that, as expected under the null scenario, the null hypothesis is rejected about 2.5% of the time, which is equal to the one-sided alpha level.</p>
 <p>Next, consider a scenario where the alternative hypothesis is true and compare the power obtained using the two packages.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">arm1alt&lt;-<span class="kw"><a href="../reference/survdefWeibull.html">survdefWeibull</a></span>(<span class="dt">shape =</span> shape1, <span class="dt">scale =</span> <span class="dv">16000</span>)
 <span class="kw"><a href="../reference/plotsurvdef.html">plotsurvdef</a></span>(arm0, arm1alt, <span class="dt">xupper =</span> <span class="dv">1000</span>)</code></pre></div>
@@ -157,8 +175,23 @@ arm1&lt;-<span class="kw"><a href="../reference/survdefWeibull.html">survdefWeib
 <span class="co">#&gt; $powerRMST</span>
 <span class="co">#&gt; [1] 0.9113981</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.9633048</span>
+<span class="co">#&gt; $powerRMSTToverC</span>
+<span class="co">#&gt; [1] 0.9113981</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.9632719</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.9631907</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauCoverT</span>
+<span class="co">#&gt; [1] NA</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $pKME</span>
 <span class="co">#&gt; [1] 1</span></code></pre></div>

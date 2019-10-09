@@ -61,6 +61,9 @@
     <li>
       <a href="../articles/Optimal-trial-design.html">Using RMSTdesign to Find Optimal Trial Designs</a>
     </li>
+    <li>
+      <a href="../articles/RMSTdesign-package-validation.html">RMSTdesign-package-validation</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -101,95 +104,19 @@ gogT_PH&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></sp
 <span class="kw"><a href="../reference/plotsurvdef.html">plotsurvdef</a></span>(gogC, gogT_PH, <span class="dt">xupper =</span> <span class="dv">10</span>)</code></pre></div>
 <p><img src="GOG111-Trial_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
 <p>The accrual period is set to <span class="math inline">\(k_1\)</span>= 3 years and the followup period to <span class="math inline">\(k_2\)</span>= 5 years, and the restriction time to <span class="math inline">\(\tau\)</span>= 7.5 years. We can use <code>RMSTpow</code> to determine the sample size needed to achieve 90% power with a one-sided type I error level of 0.025 (the default value).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(gogC, gogT_PH, <span class="dv">3</span>, <span class="dv">5</span>, <span class="fl">7.5</span>, <span class="dt">power =</span> <span class="fl">0.9</span>)
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 436</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
-<span class="co">#&gt; [1] 0.9009673</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.9063212</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
-<span class="co">#&gt; [1] 0.9646479</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(gogC, gogT_PH, <span class="dv">3</span>, <span class="dv">5</span>, <span class="fl">7.5</span>, <span class="dt">power =</span> <span class="fl">0.9</span>)</code></pre></div>
 <p>The required sample size is 436. This design proveds a 96% likelihood that the difference in mean survival time is estimable using the Kaplan-Meier estimator, which is reasonable.</p>
 <p><code>RMSTpow</code> can perform simulations to determine empirical power if we add the option <code>sim=T</code>. The following code performs 1000 simulations, and uses the <code>tau_star</code> modification if necessary, which is the default method.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">51719</span>)
 mytest1&lt;-<span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(gogC, gogT_PH, <span class="dv">3</span>, <span class="dv">5</span>, <span class="fl">7.5</span>, <span class="dt">power =</span> <span class="fl">0.9</span>, <span class="dt">sim =</span> T, <span class="dt">M=</span><span class="dv">1000</span>)
-<span class="co">#&gt; [1] "Simulating datasets..."</span>
-mytest1
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 436</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
-<span class="co">#&gt; [1] 0.9009673</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.9063212</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
-<span class="co">#&gt; [1] 0.9646479</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $simout</span>
-<span class="co">#&gt; $simout$emppowRMST</span>
-<span class="co">#&gt; [1] 0.897</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $simout$emppowLR</span>
-<span class="co">#&gt; [1] 0.846</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $simout$emppKME</span>
-<span class="co">#&gt; [1] 0.968</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $simout$meandiff</span>
-<span class="co">#&gt; [1] 0.729433</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $simout$SDdiff</span>
-<span class="co">#&gt; [1] 0.2248616</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $simout$meantrunc</span>
-<span class="co">#&gt; [1] 7.495396</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $simout$SDtrunc</span>
-<span class="co">#&gt; [1] 0.03075082</span></code></pre></div>
+mytest1</code></pre></div>
 <p>We see that the empirical power was 89.7%, and empirical probability the unmodified Kaplan-Meier estimator could be used was 0.968. The mean truncation time used in practice was 7.49 years with a standard deviation of 0.03 years.</p>
 <p>The sample size estimate presented in Royston and Parmar for this scenario was 461. The disparity between the sample sizes is likely due to different approaches to estimating mean survival time difference and its variance; Royston and Parmar used flexible parametric models.</p>
 <p>We may be interested in the trial design with the smallest total sample size, which is achieved when all patients are followed to time <span class="math inline">\(\tau\)</span>. The following code determines the sample size needed for a trial where everyone is followed time time <span class="math inline">\(\tau\)</span> = 7.5 years:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(gogC, gogT_PH, <span class="dv">0</span>, <span class="fl">7.5</span>, <span class="fl">7.5</span>, <span class="dt">power =</span> <span class="fl">0.9</span>)
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 432</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
-<span class="co">#&gt; [1] 0.9007778</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.913869</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
-<span class="co">#&gt; [1] 1</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(gogC, gogT_PH, <span class="dv">0</span>, <span class="fl">7.5</span>, <span class="fl">7.5</span>, <span class="dt">power =</span> <span class="fl">0.9</span>)</code></pre></div>
 <p>In the trial setting described, the smallest trial with 90% power requires 432 patients. Following all patients until time <span class="math inline">\(\tau\)</span> offered almost no sample size savings compared to the original administrative censoring scheme. This design provides a 100% chance the mean survival difference will be Kaplan-Meier estimablen, as no patients are censored before time <span class="math inline">\(\tau\)</span></p>
 <p>Alternatively, we may be interested in the trial with the shortest duration, given a certain accrual rate. If we assume the accrual rate is 145 patients per year, the following code will find the shortest duration trial that achieves 90% power and 95% chance the mean survival difference is Kaplan-Meier estimable at time <span class="math inline">\(\tau\)</span>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/shortest_duration.html">shortest_duration</a></span>(gogC, gogT_PH, <span class="fl">7.5</span>, .<span class="dv">9</span>, <span class="dv">145</span>, <span class="dt">pKME =</span>  .<span class="dv">95</span>)
-<span class="co">#&gt; $k1</span>
-<span class="co">#&gt; [1] 3.006897</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $k2</span>
-<span class="co">#&gt; [1] 4.946418</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $duration</span>
-<span class="co">#&gt; [1] 7.953315</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 436</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
-<span class="co">#&gt; [1] 0.900807</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.905773</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
-<span class="co">#&gt; [1] 0.9506881</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/shortest_duration.html">shortest_duration</a></span>(gogC, gogT_PH, <span class="fl">7.5</span>, .<span class="dv">9</span>, <span class="dv">145</span>, <span class="dt">pKME =</span>  .<span class="dv">95</span>)</code></pre></div>
 <p>We see that the shortest duration trial is 7.95 years long. In this example, because <span class="math inline">\(\tau\)</span>=7.5, the shortest duration trial is not much shorter than the initial trial duration of 8 years.</p>
 <p>Finally, we illustrate the use of Table 2 from our paper. In situations where the survival distributions can be approximated with exponential distributions, Table 2 can be used to get rough sample size estimates without a computer. For example, an exponential distribution with rate 0.3339 approximates the control group survival distribution from the GOG111 trial. From Table 2, for 90% power, with an expected hazard ratio of 0.7 (close to the hazard ratio of interest, 0.71), 550 patients are required if <span class="math inline">\(\tau\)</span> is selected as the 75th percentile of control group survival (4.2 years), and 418 if <span class="math inline">\(\tau\)</span> is the 90th percentile (6.9 years). These rough estimates are useful to determine whether mean survival time may be a feasible endpoint, and to inform a guess of accrual time, which can then be input in our R-package along with other design parameters to refine the design.</p>
 <p>The following code shows how we obtained the rate of 0.3339 and how the same sample sizes could have been obtained using <code>RMSTpow</code> rather than Table 2. First, we determine the rate parameter of the exponential distribution that approximates the survival curve from the GOG111 trial data by modelling the log survival probabilities as a function of time. Then, we used <code>survdef</code> to define the control group survival distribution, and the treatment group survival distribution corresponding to a hazard ratio of 0.7. (We are using 0.7 because sample sizes for a hazard ratio of 0.7 are shown in Table 2, and we are trying to match Table 2.) We plot both curves, along with the survival curve we were trying to approximate for the control group (in red).</p>
@@ -197,8 +124,6 @@ mytest1
 x&lt;-<span class="dv">1</span><span class="op">:</span><span class="dv">8</span>
 lambda&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/lm">lm</a></span>(y<span class="op">~</span>x<span class="op">-</span><span class="dv">1</span>)<span class="op">$</span>coefficients
 lambda
-<span class="co">#&gt;         x </span>
-<span class="co">#&gt; 0.3339218</span>
 <span class="co"># Use survdef to define the survival distributions in each group</span>
 gogCexp&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda)
 gogTexp&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz=</span><span class="fl">0.7</span><span class="op">*</span>gogCexp<span class="op">$</span><span class="kw">h</span>(<span class="dv">0</span>))
@@ -206,69 +131,22 @@ gogTexp&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></sp
 <span class="co"># Plot the two survival distributions. Overlay the originial piecewise exponential control group distribution</span>
 <span class="kw"><a href="../reference/plotsurvdef.html">plotsurvdef</a></span>(gogCexp, gogTexp, <span class="dt">xupper =</span> <span class="dv">10</span>)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/lines">lines</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">10</span>, .<span class="dv">01</span>), gogC<span class="op">$</span><span class="kw">S</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">10</span>, .<span class="dv">01</span>)), <span class="dt">col =</span> <span class="st">'red'</span>)</code></pre></div>
-<p><img src="GOG111-Trial_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 <p>Next, we use the <code>RMSTpow</code> function to determine the required sample size if <span class="math inline">\(\tau\)</span> is selected as the 75th percentile of control group survival (4.2 years), and if <span class="math inline">\(\tau\)</span> is the 90th percentile (6.9 years).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Show that 6.9 years corresponds to a survival probability of 0.1, and 4.2 corresponds to a survival probability of 0.25:</span>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.1</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F)
-<span class="co">#&gt; [1] 6.895583</span>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.25</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F)
-<span class="co">#&gt; [1] 4.151554</span>
 
 <span class="co"># Determine the sample size for each tau, for 90% power, with all patients followed until time tau</span>
 <span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(gogCexp, gogTexp, <span class="dv">0</span>, <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.1</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F),
         <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.1</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F), <span class="dt">power =</span> <span class="fl">0.9</span>)
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 418</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
-<span class="co">#&gt; [1] 0.9007918</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.9192127</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
-<span class="co">#&gt; [1] 1</span>
 <span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(gogCexp, gogTexp, <span class="dv">0</span>, <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.25</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F),
-        <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.25</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F), <span class="dt">power =</span> <span class="fl">0.9</span>)
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 550</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
-<span class="co">#&gt; [1] 0.9009902</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.9331826</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
-<span class="co">#&gt; [1] 1</span></code></pre></div>
+        <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.25</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F), <span class="dt">power =</span> <span class="fl">0.9</span>)</code></pre></div>
 <p>We see that the numbers obtained match Table 2. If we had instead used a hazard ratio of 0.71, exactly what was observed in the GOG111 trial, the required sample size would have been larger.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">gogTexp&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz=</span><span class="fl">0.71</span><span class="op">*</span>gogCexp<span class="op">$</span><span class="kw">h</span>(<span class="dv">0</span>))
 <span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(gogCexp, gogTexp, <span class="dv">0</span>, <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.1</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F),
         <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.1</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F), <span class="dt">power =</span> <span class="fl">0.9</span>)
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 452</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
-<span class="co">#&gt; [1] 0.9006922</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.919161</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
-<span class="co">#&gt; [1] 1</span>
 <span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(gogCexp, gogTexp, <span class="dv">0</span>, <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.25</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F),
-        <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.25</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F), <span class="dt">power =</span> <span class="fl">0.9</span>)
-<span class="co">#&gt; $n</span>
-<span class="co">#&gt; [1] 594</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerRMST</span>
-<span class="co">#&gt; [1] 0.9008899</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $powerLR</span>
-<span class="co">#&gt; [1] 0.9331321</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $pKME</span>
-<span class="co">#&gt; [1] 1</span></code></pre></div>
+        <span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">qexp</a></span>(<span class="fl">0.25</span>, <span class="dt">rate =</span> lambda, <span class="dt">lower.tail =</span> F), <span class="dt">power =</span> <span class="fl">0.9</span>)</code></pre></div>
 <div class="footnotes">
 <hr>
 <ol>

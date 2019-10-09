@@ -12,7 +12,14 @@
 #' @param n total sample size for both groups. 1:1 randomization is assumed.
 #' Either `n` or `power` can be specified, and the other value will be calculated.
 #' @param power the desired power.
-#' @param plot if T, plots of power versus each design parameter will be produced. Default is F.
+#' @param plot if T, plots of the assumed survival distributions and power
+#' as a function of sample size, accrual time ka1and follow-up time k2 will be produced.
+#' Default is F.
+#' The power of the RMST test, the log-rank test using all available followup and
+#' the log-rank test using only followup to time tau after randomization will be
+#' displayed. If two-sided=T, the power of the test for superiorty (treatment over
+#'  control) and inferiority (control over treatment), are represented with solid
+#'  and dashed lines, respectively.
 #' @param sim if T, simulations will be conducted and empirical power and other
 #'  summary statistics will be provided. Default is F. The hypothesis tests are
 #'  carried out based on the normal approximation with the variance estimated
@@ -29,35 +36,51 @@
 #' and 'risk5'. The riskX' options indicate estimating RMST difference at the
 #' latest time at which at least X people are at risk in each group,
 #' irrespective of the value of `tau`.
-#' @param alpha one-sided type I error level. Default is 0.025.
+#' @param alpha type I error level. Default is 0.025 if 'two.sided'=F and 0.05
+#' if 'two.sided'=T.
+#' @param two.sided whether a two-sided test is desired. Default is F, meaning that
+#' all reported power values correspond to a test of the superiority of treatment
+#' over control. If set to T, the power for a test of superiority (treatment over control)
+#'  and inferiority (control over treatment) will be reported separately in the results;
+#' the power of a two-sided test is the sum of two.
 #'
 #' @return a list with components
-#' \item{n}{the user specified n, or if n was left blank, the n needed to achieve the user-specified power.}
-#' \item{powerRMST}{the user specified power, or if power was left blank, the asymptotic power of the RMST test.}
-#' \item{powerLR}{the asymptotic power of the log-rank test.}
+#' \item{n}{the user-specified n, or if n was left blank, the n needed to achieve the user-specified power.}
+#' \item{powerRMST}{the user-specified power, or if power was left blank, the asymptotic power of the RMST test.}
+#' \item{powerRMSToverC}{the asymptotic power for a test of superiority of treatment over control.}
+#' \item{powerRMSCoverT}{the asymptotic power for a test of superiority of control over treatment.
+#'  If a one-sided test is specified, this is set to NA.}
+#' \item{powerLRToverC}{the asymptotic power of the log-rank test of superiority
+#'  of treatment over control.}
+#' \item{powerLRCoverT}{the asymptotic power of the log-rank test of superiority
+#'  of control over treatment. If a one-sided test is specified, this is set to NA.}
+#' \item{powerLRtauToverC}{the asymptotic power of the log-rank test of superiority
+#'  of treatment over control, using only data up to time tau after randomization.}
+#' \item{powerLRtauCoverT}{the asymptotic power of the log-rank test of superiority
+#'  of control over treatment, using only data up to time tau after randomization.
+#'  If a one-sided test is specified, this is set to NA.}
 #' \item{pKME}{the probability that you will be able to estimate RMST difference
 #'  at time tau using the standard Kaplan-Meier estimator. If the last observation
 #'  in either group is censored, and the censoring time is less than tau, the
 #'  Kaplan-Meier estimate is not defined through time tau, and the RMST difference
 #'  cannot be estimated using the standard area under the Kaplan-Meier curve. A
 #'  modified estimator must be used.}
-#' \item{plotvals}{a list used for generating plots, returned if `plot = T`,
-#' with components:}
-#' \itemize{
-#' \item{`n_vec`}{ a vector of sample sizes near the selected sample size}
-#' \item{`n_pow`}{ power of the RMST based test for the values in n_vec, holding k1, k2 and tau constant  }
-#' \item{`k1_vec`}{ a vector of accrual periods near the specified k1}
-#' \item{`k1_pow`}{ power of the RMST based test for the values in k1_vec, holding n, tau and total trial length constant}
-#' \item{`k2_vec`}{ a vector of follow-up periods near the specified k2}
-#' \item{`k2_pow`}{ power of the RMST based test for the values in k2_vec, holding n, k1 and tau constant  }
-#' \item{`tau_vec`}{ a vector of restriction times near the specified tau}
-#' \item{`tau_pow`}{ power of the RMST based test for the values in tau_vec, holding n, k1 and k2 constant}
-#'}
 #' \item{simout}{a list returned if `sim = T`, with components:}
 #'
 #' \itemize{
-#' \item{`emppowRMST`}{ empirical power of the RMST test.}
-#' \item{`emppowLR`}{ empirical power of the log-rank test.}
+#' \item{`emppowRMSTToverC`}{ empirical power of the RMST test for the superiority of
+#'  treatment over control.}
+#' \item{`emppowRMSTCoverT`}{ empirical power of the RMST test for the superiority of
+#' control over treatment. If a one-sided test is specified, this is set to NA.}
+#' \item{`emppowLRToverC`}{ empirical power of the log-rank test for the superiority of
+#'  treatment over control.}
+#' \item{`emppowLRCoverT`}{ empirical power of the log-rank testthe superiority of
+#' control over treatment. If a one-sided test is specified, this is set to NA.}
+#' \item{`emppowLRtauToverC`}{ empirical power of the log-rank test for the superiority of
+#'  treatment over control, using only data up to time tau after randomization.}
+#' \item{`emppowLRtauCoverT`}{ empirical power of the log-rank testthe superiority of
+#' control over treatment, using only data up to time tau after randomization.
+#' If a one-sided test is specified, this is set to NA.}
 #' \item{`emppKME`}{ proportion of simulations where the standard KM estimator was used.}
 #' \item{`meandiff`}{ mean estimated difference in RMST across the simulated datasets.}
 #' \item{`SDdiff`}{ standard deviation of the estimated difference in RMST across the simulated datasets.}
@@ -75,57 +98,138 @@
 #' RMSTpow(con, trt, k1 = 0, k2 = 3, tau = 3, power = 0.8)
 #' RMSTpow(con, trt, k1 = 0, k2 = 3, tau = 3, n = 552)
 RMSTpow<-function(survdefC, survdefT, k1, k2, tau, n=NA, power=NA,
-                  plot = F, sim = F, M = 1000, method = 'tau_star', alpha = 0.025){
+                  plot = F, sim = F, M = 1000, method = 'tau_star',
+                  alpha = NA, two.sided=F){
+    if (is.na(alpha)) alpha <- ifelse(two.sided==T, 0.05, 0.025)
     if (is.na(power)+is.na(n)!=1) stop('One of n, power must be missing.')
+    if (tau<=0) stop('Tau must be greater than zero.')
     if (is.na(n)){
         RMST_truediff<-integrate(function(x) survdefT$S(x)-survdefC$S(x),
                                  lower = 0, upper = tau)$value
-        RMST_trueSE <- RMST_truediff/(qnorm(1-alpha)-qnorm(1-power))
-        find_n<-function(N) sqrt(evar(survdefT, k1, k2, tau, k1+k2, N)+
+        if (two.sided==F) {
+            if (RMST_truediff<0) stop('True RMST in treatment arm is less than true RMST in control arm; cannot design a trial to show treatment is superior.')
+            RMST_trueSE <- RMST_truediff/(qnorm(1-alpha)-qnorm(1-power))
+            find_n<-function(N) sqrt(evar(survdefT, k1, k2, tau, k1+k2, N)+
                                      evar(survdefC, k1, k2, tau, k1+k2, N))-RMST_trueSE
+            if (find_n(10000)>0) stop('Trial size would be more than 20,000 patients; please select different design parameters.')
+        }
+        else {
+            find_n<-function(N) 1-pnorm(qnorm(1-alpha/2)-RMST_truediff/sqrt(evar(survdefT, k1, k2, tau, k1+k2, N)+evar(survdefC, k1, k2, tau, k1+k2, N)))+
+                pnorm(qnorm(alpha/2)-RMST_truediff/sqrt(evar(survdefT, k1, k2, tau, k1+k2, N)+evar(survdefC, k1, k2, tau, k1+k2, N)))-
+                power
+            if (find_n(10000)<0) stop('Trial size would be more than 20,000 patients; please select different design parameters.')
+        }
         N<- uniroot(find_n, lower = 1, upper = 10000)$root
         n <- 2*ceiling(N)
     }
-    powerRMST <- powfn(survdefC, survdefT, k1, k2, tau, n, alpha)
-    powerLR <- LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha)
+    else{if (n%%2 !=0) n<- ifelse(floor(n)%%2==0,floor(n),floor(n)-1)}
+#    powerRMST <- powfn(survdefC, survdefT, k1, k2, tau, n, alpha)
+#    powerLR <- LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha)
+#    powerLRtau <- LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha, tau = tau)
+    if (two.sided==F) {
+        powerRMSTToverC <- powerRMST <- powfn(survdefC, survdefT, k1, k2, tau, n, alpha)
+        powerRMSTCoverT <- NA
+        powerLRToverC <- LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha)
+        powerLRCoverT <- NA
+        powerLRtauToverC <- LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha, tau = tau)
+        powerLRtauCoverT <- NA
+    }
+    else{
+        powerRMSTToverC<-powfn(survdefC, survdefT, k1, k2, tau, n, alpha/2)
+        powerRMSTCoverT<-powfn(survdefT, survdefC, k1, k2, tau, n, alpha/2)
+        powerRMST<-powerRMSTToverC+powerRMSTCoverT
+        powerLRToverC <- LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha/2)
+        powerLRCoverT <- LRpow_nonPH(survdefT, survdefC, k1,k2,n, alpha/2)
+        powerLRtauToverC <- LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha/2, tau = tau)
+        powerLRtauCoverT <- LRpow_nonPH(survdefT, survdefC, k1,k2,n, alpha/2, tau = tau)
+    }
     pKME <- RMSTeval(survdefC, survdefT, k1, k2, tau, n)
-    to_ret<-list(n=n, powerRMST=powerRMST, powerLR=powerLR, pKME=pKME)
+    to_ret<-list(n=n, powerRMST=powerRMST, powerRMSTToverC=powerRMSTToverC,powerRMSTCoverT=powerRMSTCoverT,
+                 powerLRToverC=powerLRToverC, powerLRCoverT=powerLRCoverT,
+                 powerLRtauToverC=powerLRtauToverC, powerLRtauCoverT=powerLRtauCoverT,
+                 pKME=pKME)
     if (plot == T){
         par(mfrow = c(2,2), mar = c(5,4,1,2))
-        plot_val<-list(n_vec=NA, n_pow=NA, k1_vec=NA, k1_pow=NA,
-                       k2_vec=NA, k2_pow=NA, tau_vec=NA, tau_pow = NA)
-        print('Calculating power for different values of n...')
-        plot_val$n_vec<-seq(from = n*.5, to = n*1.5,length.out =  20)
-        plot_val$n_pow<-sapply(plot_val$n_vec, function(x) powfn(survdefC, survdefT, k1, k2, tau, x, alpha))
-        print('Calculating power for different values of k1...')
-        plot_val$k1_vec<-seq(from = max(0,tau-k2), to = k1*1.5,length.out =  20)
-        if (k1==0) plot_val$k1_vec<-seq(from = 0, to = k2,length.out =  20)
-        plot_val$k1_pow<-sapply(plot_val$k1_vec, function(x) powfn(survdefC, survdefT, x, k2, tau, n, alpha))
-        print('Calculating power for different values of k2...')
-        plot_val$k2_vec<-seq(from = max(0,tau-k1), to = k2*1.5,length.out =  20)
-        if (k2==0) plot_val$k2_vec<-seq(from = 0, to = k1,length.out =  20)
-        plot_val$k2_pow<-sapply(plot_val$k2_vec, function(x) powfn(survdefC, survdefT, k1, x, tau, n, alpha))
-        print('Calculating power for different values of tau...')
-        plot_val$tau_vec<-seq(from = tau*.5, to = min(k1+k2,tau*1.5),length.out =  20)
-        plot_val$tau_pow<-sapply(plot_val$tau_vec, function(x) powfn(survdefC, survdefT, k1, k2, x, n, alpha))
+        n_vec<-seq(from = n*.5, to = n*1.5,length.out =  20)
+        k1_vec<-seq(from = max(0,tau-k2), to = k1*1.5,length.out =  20)
+        if (k1==0) k1_vec<-seq(from = 0, to = k2,length.out =  20)
+        k2_vec<-seq(from = max(0,tau-k1), to = k2*1.5,length.out =  20)
+        if (k2==0) k2_vec<-seq(from = 0, to = k1,length.out =  20)
+        tau_vec<-seq(from = tau*.5, to = min(k1+k2,tau*1.5),length.out =  20)
 
-        plot(plot_val$n_vec, plot_val$n_pow, xlab = 'Sample size', ylab = 'Power', ylim = c(0,1), type ='l')
-        lines(plot_val$n_vec, sapply(plot_val$n_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,k2,x, alpha)), col = 'red')
-        legend(plot_val$n_vec[12], 0.25, c('RMST','Log-rank'), col = 1:2,cex = .5, lty = 1, bty='n')
-        plot(plot_val$k1_vec, plot_val$k1_pow, xlab = 'Accrual time', ylab = 'Power', ylim = c(0,1), type ='l')
-        lines(plot_val$k1_vec, sapply(plot_val$k1_vec, function(x) LRpow_nonPH(survdefC, survdefT, x,k1+k2-x,n, alpha)), col = 'red')
-        legend(plot_val$k1_vec[12], 0.25, c('RMST','Log-rank'), col = 1:2,cex = .5, lty = 1, bty='n')
-        plot(plot_val$k2_vec, plot_val$k2_pow, xlab = 'Followup time', ylab = 'Power', ylim = c(0,1), type ='l')
-        lines(plot_val$k2_vec, sapply(plot_val$k2_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,x,n, alpha)), col = 'red')
-        legend(plot_val$k2_vec[12], 0.25, c('RMST','Log-rank'), col = 1:2,cex = .5, lty = 1, bty='n')
-        plot(plot_val$tau_vec, plot_val$tau_pow, xlab = 'Tau', ylab = 'Power', ylim = c(0,1), type ='l')
-        abline(h=LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha), col = 'red')
-        legend(plot_val$tau_vec[12], 0.25, c('RMST','Log-rank'), col = 1:2,cex = .5, lty = 1, bty='n')
-        to_ret[['plot_val']]<-plot_val
+        plotsurvdef(survdefC, survdefT, xupper = k1+k2)
+        legend((k1+k2)*.5, 0.25, c('Control','Treatment'),cex = .5, lty = c(1,2), bty='n')
+
+        if (two.sided==F) {
+            plot(n_vec, sapply(n_vec, function(x) powfn(survdefC, survdefT, k1, k2, tau, x, alpha)),
+                 xlab = 'Sample size', ylab = 'Power', ylim = c(0,1), type ='l')
+            lines(n_vec, sapply(n_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,k2,x, alpha)), col = 'red')
+            lines(n_vec, sapply(n_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,k2,x, alpha, tau)), col = 'blue')
+            legend(n_vec[10], 0.25, c('RMST','Log-rank', 'Log-rank (tau)'), col = c(1,2,4),cex = .5, lty = 1, bty='n')
+
+            plot(k1_vec, sapply(k1_vec, function(x) powfn(survdefC, survdefT, x, k2, tau, n, alpha)),
+                 xlab = 'Accrual time', ylab = 'Power', ylim = c(0,1), type ='l')
+            lines(k1_vec, sapply(k1_vec, function(x) LRpow_nonPH(survdefC, survdefT, x,k2,n, alpha)), col = 'red')
+            lines(k1_vec, sapply(k1_vec, function(x) LRpow_nonPH(survdefC, survdefT, x,k2,n, alpha, tau)), col = 'blue')
+            legend(k1_vec[10], 0.25, c('RMST','Log-rank', 'Log-rank (tau)'), col = c(1,2,4),cex = .5, lty = 1, bty='n')
+
+            plot(k2_vec, sapply(k2_vec, function(x) powfn(survdefC, survdefT, k1, x, tau, n, alpha)),
+                 xlab = 'Followup time', ylab = 'Power', ylim = c(0,1), type ='l')
+            lines(k2_vec, sapply(k2_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,x,n, alpha)), col = 'red')
+            lines(k2_vec, sapply(k2_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,x,n, alpha, tau)), col = 'blue')
+            legend(k2_vec[10], 0.25, c('RMST','Log-rank', 'Log-rank (tau)'), col = c(1,2,4),cex = .5, lty = 1, bty='n')
+
+           # plot(tau_vec, sapply(tau_vec, function(x) powfn(survdefC, survdefT, k1, k2, x, n, alpha)),
+        #         xlab = 'Tau', ylab = 'Power', ylim = c(0,1), type ='l')
+         #   lines(tau_vec, sapply(tau_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha)), col = 'red')
+          #  lines(tau_vec, sapply(tau_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha, x)), col = 'blue')
+          #  legend(tau_vec[10], 0.25, c('RMST','Log-rank', 'Log-rank (tau)'), col = c(1,2,4),cex = .5, lty = 1, bty='n')
+            }
+        else {
+            plot(n_vec, sapply(n_vec, function(x) powfn(survdefC, survdefT, k1, k2, tau, x, alpha/2)),
+                 xlab = 'Sample size', ylab = 'Power', ylim = c(0,1), type ='l')
+            lines(n_vec, sapply(n_vec, function(x) powfn(survdefT, survdefC, k1, k2, tau, x, alpha/2)), lty=2)
+            lines(n_vec, sapply(n_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,k2,x, alpha/2)), col = 'red')
+            lines(n_vec, sapply(n_vec, function(x) LRpow_nonPH(survdefT, survdefC, k1,k2,x, alpha/2)), col = 'red', lty = 2)
+            lines(n_vec, sapply(n_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,k2,x, alpha/2, tau)), col = 'blue')
+            lines(n_vec, sapply(n_vec, function(x) LRpow_nonPH(survdefT, survdefC, k1,k2,x, alpha/2, tau)), col = 'blue', lty = 2)
+            legend(n_vec[10], 0.25, c('RMST','Log-rank', 'Log-rank (tau)'), col = c(1,2,4),cex = .5, lty = 1, bty='n')
+
+            plot(k1_vec, sapply(k1_vec, function(x) powfn(survdefC, survdefT, x, k2, tau, n, alpha/2)),
+                 xlab = 'Accrual time', ylab = 'Power', ylim = c(0,1), type ='l')
+            lines(k1_vec, sapply(k1_vec, function(x) powfn(survdefT, survdefC, x, k2, tau, n, alpha/2)), lty=2)
+            lines(k1_vec, sapply(k1_vec, function(x) LRpow_nonPH(survdefC, survdefT, x,k2,n, alpha/2)), col = 'red')
+            lines(k1_vec, sapply(k1_vec, function(x) LRpow_nonPH(survdefT, survdefC, x,k2,n, alpha/2)), col = 'red', lty = 2)
+            lines(k1_vec, sapply(k1_vec, function(x) LRpow_nonPH(survdefC, survdefT, x,k2,n, alpha/2, tau)), col = 'blue')
+            lines(k1_vec, sapply(k1_vec, function(x) LRpow_nonPH(survdefT, survdefC, x,k2,n, alpha/2, tau)), col = 'blue', lty = 2)
+            legend(k1_vec[10], 0.25, c('RMST','Log-rank', 'Log-rank (tau)'), col = c(1,2,4),cex = .5, lty = 1, bty='n')
+
+            plot(k2_vec, sapply(k2_vec, function(x) powfn(survdefC, survdefT, k1, x, tau, n, alpha/2)),
+                 xlab = 'Followup time', ylab = 'Power', ylim = c(0,1), type ='l')
+            lines(k2_vec, sapply(k2_vec, function(x) powfn(survdefT, survdefC, k1, x, tau, n, alpha/2)), lty=2)
+            lines(k2_vec, sapply(k2_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,x,n, alpha/2)), col = 'red')
+            lines(k2_vec, sapply(k2_vec, function(x) LRpow_nonPH(survdefT, survdefC, k1,x,n, alpha/2)), col = 'red', lty = 2)
+            lines(k2_vec, sapply(k2_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,x,n, alpha/2, tau)), col = 'blue')
+            lines(k2_vec, sapply(k2_vec, function(x) LRpow_nonPH(survdefT, survdefC, k1,x,n, alpha/2, tau)), col = 'blue', lty = 2)
+            legend(k2_vec[10], 0.25, c('RMST','Log-rank', 'Log-rank (tau)'), col = c(1,2,4),cex = .5, lty = 1, bty='n')
+
+          #  plot(tau_vec, sapply(tau_vec, function(x) powfn(survdefC, survdefT, k1, k2, x, n, alpha/2)),
+          #       xlab = 'Tau', ylab = 'Power', ylim = c(0,1), type ='l')
+          #  lines(tau_vec, sapply(tau_vec, function(x) powfn(survdefT, survdefC, k1, k2, x, n, alpha/2)), lty=2)
+          #  lines(tau_vec, sapply(tau_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha/2)), col = 'red')
+          #  lines(tau_vec, sapply(tau_vec, function(x) LRpow_nonPH(survdefT, survdefC, k1,k2,n, alpha/2)), col = 'red', lty = 2)
+          #  lines(tau_vec, sapply(tau_vec, function(x) LRpow_nonPH(survdefC, survdefT, k1,k2,n, alpha/2, x)), col = 'blue')
+          #  lines(tau_vec, sapply(tau_vec, function(x) LRpow_nonPH(survdefT, survdefC, k1,k2,n, alpha/2, x)), col = 'blue', lty = 2)
+          #  legend(tau_vec[10], 0.25, c('RMST','Log-rank', 'Log-rank (tau)'), col = c(1,2,4),cex = .5, lty = 1, bty='n')
+        }
     }
     if (sim == T) {
+        if (n%%2 !=0) stop('Total sample size n must be even to do simulations.')
         print('Simulating datasets...')
-        simout<-list(emppowRMST=NA, emppowLR=NA, emppKME=NA, meandiff=NA, SDdiff=NA, meantrunc=NA, SDtrunc=NA)
+        simout<-list(emppowRMSTToverC=NA, emppowRMSTCoverT=NA,
+                     emppowLRToverC=NA, emppowLRCoverT=NA,
+                     emppowLRtauToverC=NA, emppowLRtauCoverT=NA,
+                     emppKME=NA, meandiff=NA, SDdiff=NA, meantrunc=NA, SDtrunc=NA)
         Fc_inv<-function(u){
             findroot<-function(x) 1-survdefC$S(x)-u
             return(uniroot(findroot, lower = 0, upper = (k1+k2)*1000)$root)
@@ -134,8 +238,11 @@ RMSTpow<-function(survdefC, survdefT, k1, k2, tau, n=NA, power=NA,
             findroot<-function(x) 1-survdefT$S(x)-u
             return(uniroot(findroot, lower = 0, upper = (k1+k2)*1000)$root)
         }
-        out<-data.frame(matrix(NA, nrow = M, ncol = 6))
-        colnames(out)<-c('last_censT','last_censC','tau_temp','RMST_diff','RMST_reject', 'LR_reject')
+        out<-data.frame(matrix(NA, nrow = M, ncol = 10))
+        colnames(out)<-c('last_censT','last_censC','tau_temp','RMST_diff',
+                         'RMST_rejectToverC','RMST_rejectCoverT',
+                         'LR_rejectToverC','LR_rejectCoverT',
+                         'LRtau_rejectToverC','LRtau_rejectCoverT')
         for (m in 1:M){
             out$tau_temp[m]<-tau
             grp<-c(rep('c', n/2), rep('t', n/2))
@@ -176,13 +283,39 @@ RMSTpow<-function(survdefC, survdefT, k1, k2, tau, n=NA, power=NA,
 
             summ<-summary(surv_res, rmean = out$tau_temp[m])$table
             out$RMST_diff[m]<-summ[2,5]-summ[1,5]
-            out$RMST_reject[m]<-out$RMST_diff[m]/(sqrt(summ[2,6]^2 + summ[1,6]^2))>qnorm(1-alpha)
-            survtest<-survdiff(Surv(time, event)~grp) #, timefix = FALSE)
-            out$LR_reject[m]<-((1 - pchisq(survtest$chisq, 1))<alpha &
-                                   survtest$obs[1]>survtest$exp[1])
+            survtest<-survdiff(Surv(time, event)~grp)#, timefix = F)
+            time2<-pmin(time, tau)
+            event2<-ifelse(time<=tau, event, F)
+            survtest2<-survdiff(Surv(time2, event2)~grp)#, timefix = FALSE)
+            if (two.sided == F) {
+                out$RMST_rejectToverC[m]<-out$RMST_diff[m]/(sqrt(summ[2,6]^2 + summ[1,6]^2))>qnorm(1-alpha)
+                out$RMST_rejectCoverT[m]<-NA
+                out$LR_rejectToverC[m]<-((1 - pchisq(survtest$chisq, 1))<alpha &
+                                       survtest$obs[1]>survtest$exp[1])
+                out$LR_rejectCoverT[m]<-NA
+                out$LRtau_rejectToverC[m]<-((1 - pchisq(survtest2$chisq, 1))<alpha &
+                                          survtest2$obs[1]>survtest2$exp[1])
+                out$LRtau_rejectCoverT<-NA
+            }
+            else {
+                out$RMST_rejectToverC[m]<-out$RMST_diff[m]/(sqrt(summ[2,6]^2 + summ[1,6]^2))>qnorm(1-alpha/2)
+                out$RMST_rejectCoverT[m]<-(out$RMST_diff[m])/(sqrt(summ[2,6]^2 + summ[1,6]^2))<qnorm(alpha/2)
+                out$LR_rejectToverC[m]<-((1 - pchisq(survtest$chisq, 1))<alpha/2 &
+                                             survtest$obs[1]>survtest$exp[1])
+                out$LR_rejectCoverT[m]<-((1 - pchisq(survtest$chisq, 1))<alpha/2 &
+                                             survtest$obs[1]<survtest$exp[1])
+                out$LRtau_rejectToverC[m]<-((1 - pchisq(survtest2$chisq, 1))<alpha/2 &
+                                                survtest2$obs[1]>survtest2$exp[1])
+                out$LRtau_rejectCoverT[m]<-((1 - pchisq(survtest2$chisq, 1))<alpha/2 &
+                                                survtest2$obs[1]<survtest2$exp[1])
+            }
         }
-        simout$emppowRMST<-sum(out$RMST_reject)/M
-        simout$emppowLR<-sum(out$LR_reject)/M
+        simout$emppowRMSTToverC<-sum(out$RMST_rejectToverC)/M
+        simout$emppowRMSTCoverT<-sum(out$RMST_rejectCoverT)/M
+        simout$emppowLRToverC<-sum(out$LR_rejectToverC)/M
+        simout$emppowLRCoverT<-sum(out$LR_rejectCoverT)/M
+        simout$emppowLRtauToverC<-sum(out$LRtau_rejectToverC)/M
+        simout$emppowLRtauCoverT<-sum(out$LRtau_rejectCoverT)/M
         simout$emppKME<-sum(out$last_censT==F & out$last_censC==F)/M
         simout$meandiff<-mean(out$RMST_diff)
         simout$SDdiff<-sd(out$RMST_diff)

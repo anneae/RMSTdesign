@@ -1,0 +1,27 @@
+---
+title: "RMSTdesign-package-validation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RMSTdesign-package-validation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(RMSTdesign)
+```
+
+This vignette validates the internal functions of the `RMSTdesign` package by using them on a toy dataset and comparing the result to by-hand calculations. Then, it confirms that the power returned by the `RMSTpow` function is close to the empirical power across a wide variety of scenarios. For Weibull scenarios, we also confirm that the power is close to the empirical power from the `SSRMST` package.
+
+Weibull scenarios 
+SSRMST 
+
+
+

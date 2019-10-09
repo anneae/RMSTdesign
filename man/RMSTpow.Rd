@@ -5,8 +5,8 @@
 \title{Sample Size and Power for the Test of the Difference in Restricted Mean Survival Time}
 \usage{
 RMSTpow(survdefC, survdefT, k1, k2, tau, n = NA, power = NA,
-  plot = F, sim = F, M = 1000, method = "tau_star",
-  alpha = 0.025)
+  plot = F, sim = F, M = 1000, method = "tau_star", alpha = NA,
+  two.sided = F)
 }
 \arguments{
 \item{survdefC}{the survival distribution of the control group, as a list in the form output by \code{survdef}.}
@@ -25,7 +25,14 @@ Either \code{n} or \code{power} can be specified, and the other value will be ca
 
 \item{power}{the desired power.}
 
-\item{plot}{if T, plots of power versus each design parameter will be produced. Default is F.}
+\item{plot}{if T, plots of the assumed survival distributions and power
+as a function of sample size, accrual time ka1and follow-up time k2 will be produced.
+Default is F.
+The power of the RMST test, the log-rank test using all available followup and
+the log-rank test using only followup to time tau after randomization will be
+displayed. If two-sided=T, the power of the test for superiorty (treatment over
+control) and inferiority (control over treatment), are represented with solid
+and dashed lines, respectively.}
 
 \item{sim}{if T, simulations will be conducted and empirical power and other
 summary statistics will be provided. Default is F. The hypothesis tests are
@@ -46,36 +53,53 @@ and 'risk5'. The riskX' options indicate estimating RMST difference at the
 latest time at which at least X people are at risk in each group,
 irrespective of the value of \code{tau}.}
 
-\item{alpha}{one-sided type I error level. Default is 0.025.}
+\item{alpha}{type I error level. Default is 0.025 if 'two.sided'=F and 0.05
+if 'two.sided'=T.}
+
+\item{two.sided}{whether a two-sided test is desired. Default is F, meaning that
+all reported power values correspond to a test of the superiority of treatment
+over control. If set to T, the power for a test of superiority (treatment over control)
+and inferiority (control over treatment) will be reported separately in the results;
+the power of a two-sided test is the sum of two.}
 }
 \value{
 a list with components
-\item{n}{the user specified n, or if n was left blank, the n needed to achieve the user-specified power.}
-\item{powerRMST}{the user specified power, or if power was left blank, the asymptotic power of the RMST test.}
-\item{powerLR}{the asymptotic power of the log-rank test.}
+\item{n}{the user-specified n, or if n was left blank, the n needed to achieve the user-specified power.}
+\item{powerRMST}{the user-specified power, or if power was left blank, the asymptotic power of the RMST test.}
+\item{powerRMSToverC}{the asymptotic power for a test of superiority of treatment over control.}
+\item{powerRMSCoverT}{the asymptotic power for a test of superiority of control over treatment.
+If a one-sided test is specified, this is set to NA.}
+\item{powerLRToverC}{the asymptotic power of the log-rank test of superiority
+of treatment over control.}
+\item{powerLRCoverT}{the asymptotic power of the log-rank test of superiority
+of control over treatment. If a one-sided test is specified, this is set to NA.}
+\item{powerLRtauToverC}{the asymptotic power of the log-rank test of superiority
+of treatment over control, using only data up to time tau after randomization.}
+\item{powerLRtauCoverT}{the asymptotic power of the log-rank test of superiority
+of control over treatment, using only data up to time tau after randomization.
+If a one-sided test is specified, this is set to NA.}
 \item{pKME}{the probability that you will be able to estimate RMST difference
 at time tau using the standard Kaplan-Meier estimator. If the last observation
 in either group is censored, and the censoring time is less than tau, the
 Kaplan-Meier estimate is not defined through time tau, and the RMST difference
 cannot be estimated using the standard area under the Kaplan-Meier curve. A
 modified estimator must be used.}
-\item{plotvals}{a list used for generating plots, returned if \code{plot = T},
-with components:}
-\itemize{
-\item{\code{n_vec}}{ a vector of sample sizes near the selected sample size}
-\item{\code{n_pow}}{ power of the RMST based test for the values in n_vec, holding k1, k2 and tau constant  }
-\item{\code{k1_vec}}{ a vector of accrual periods near the specified k1}
-\item{\code{k1_pow}}{ power of the RMST based test for the values in k1_vec, holding n, tau and total trial length constant}
-\item{\code{k2_vec}}{ a vector of follow-up periods near the specified k2}
-\item{\code{k2_pow}}{ power of the RMST based test for the values in k2_vec, holding n, k1 and tau constant  }
-\item{\code{tau_vec}}{ a vector of restriction times near the specified tau}
-\item{\code{tau_pow}}{ power of the RMST based test for the values in tau_vec, holding n, k1 and k2 constant}
-}
 \item{simout}{a list returned if \code{sim = T}, with components:}
 
 \itemize{
-\item{\code{emppowRMST}}{ empirical power of the RMST test.}
-\item{\code{emppowLR}}{ empirical power of the log-rank test.}
+\item{\code{emppowRMSTToverC}}{ empirical power of the RMST test for the superiority of
+treatment over control.}
+\item{\code{emppowRMSTCoverT}}{ empirical power of the RMST test for the superiority of
+control over treatment. If a one-sided test is specified, this is set to NA.}
+\item{\code{emppowLRToverC}}{ empirical power of the log-rank test for the superiority of
+treatment over control.}
+\item{\code{emppowLRCoverT}}{ empirical power of the log-rank testthe superiority of
+control over treatment. If a one-sided test is specified, this is set to NA.}
+\item{\code{emppowLRtauToverC}}{ empirical power of the log-rank test for the superiority of
+treatment over control, using only data up to time tau after randomization.}
+\item{\code{emppowLRtauCoverT}}{ empirical power of the log-rank testthe superiority of
+control over treatment, using only data up to time tau after randomization.
+If a one-sided test is specified, this is set to NA.}
 \item{\code{emppKME}}{ proportion of simulations where the standard KM estimator was used.}
 \item{\code{meandiff}}{ mean estimated difference in RMST across the simulated datasets.}
 \item{\code{SDdiff}}{ standard deviation of the estimated difference in RMST across the simulated datasets.}

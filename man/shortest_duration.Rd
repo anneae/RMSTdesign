@@ -37,13 +37,18 @@ shortest possible trial. This argument is ignored if altdesign=F.}
 }
 \value{
 a list with components:
+\item{n}{total number of patients.}
 \item{k1}{length of the accrual period. We assume subjects will accrue
 uniformly over the interval (0, k1) and then be followed until trial time
 k1+k2.}
 \item{k2}{length of the follow-up period.  }
 \item{duration}{trial duration in calendar time, k1+k2.  }
-\item{powerRMST}{the asymptotic power of the RMST test.  }
-\item{powerLR}{the asymptotic power of the log-rank test.  }
+\item{powerRMSTToverC}{the asymptotic power of the RMST test for the superiority
+of treatment over control.  }
+\item{powerLRToverC}{the asymptotic power of the log-rank test using all available
+follow-up for the superiority of treatment over control.  }
+\item{powerLRtauToverC}{the asymptotic power of the log-rank test using follow-up to
+time tau for the superiority of treatment over control.  }
 \item{pKME}{the probability that you will be able to estimate RMST
 difference at time tau using the standard Kaplan-Meier estimator.}
 }
@@ -51,7 +56,8 @@ difference at time tau using the standard Kaplan-Meier estimator.}
 Find the trial with the shortest duration in calendar time with a specified
 power and probability that RMST difference will be estimable with the
 Kaplan-Meier estimator. Within all trials of that minimum duration, the
-function finds the one with the smallest sample size.
+function finds the one with the smallest sample size. This function is based on
+a one-sided test of the superiority of the treatment arm.
 }
 \examples{
 con<-survdef(times = 3, surv = 0.5)

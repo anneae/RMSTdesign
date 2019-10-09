@@ -40,7 +40,7 @@ arm1<-survdefWeibull(shape = shape1, scale = scale1)
 
 RMSTpow(arm0, arm1, k1=70, k2=908-70, tau = 900, n=30*70)
 ```
-We see that we get similar results with the two packages, and that, as expected under the null scenario, the null hypothesis is rejected about 2.5% of the time, which is equal to the one-sided alpha level. 
+In the output of the `RMSTpow` function, we should focus on the quantity `powerRMSTToverC`, which is the asymptotic power of the restricted mean-based test for the superiority of treatment over control. The output of the `ssrmst` function gives the empirical power of the same test based on simulations (2000 simulations by default). We see that we get similar results with the two packages, and that, as expected under the null scenario, the null hypothesis is rejected about 2.5% of the time, which is equal to the one-sided alpha level.
 
 Next, consider a scenario where the alternative hypothesis is true and compare the power obtained using the two packages. 
 ```{r}

@@ -3,7 +3,8 @@
 #' Find the trial with the shortest duration in calendar time with a specified
 #' power and probability that RMST difference will be estimable with the
 #' Kaplan-Meier estimator. Within all trials of that minimum duration, the
-#' function finds the one with the smallest sample size.
+#' function finds the one with the smallest sample size. This function is based on
+#' a one-sided test of the superiority of the treatment arm.
 #'
 #' @param survdefC the survival distribution of the control group, as a list in the form output by survdef.
 #' @param survdefT the survival distribution of the treatment group, as a list in the form output by survdef.
@@ -25,13 +26,18 @@
 #' shortest possible trial. This argument is ignored if altdesign=F.
 #'
 #' @return a list with components:
+#' \item{n}{total number of patients.}
 #' \item{k1}{length of the accrual period. We assume subjects will accrue
 #' uniformly over the interval (0, k1) and then be followed until trial time
 #' k1+k2.}
 #' \item{k2}{length of the follow-up period.  }
 #' \item{duration}{trial duration in calendar time, k1+k2.  }
-#' \item{powerRMST}{the asymptotic power of the RMST test.  }
-#' \item{powerLR}{the asymptotic power of the log-rank test.  }
+#' \item{powerRMSTToverC}{the asymptotic power of the RMST test for the superiority
+#' of treatment over control.  }
+#' \item{powerLRToverC}{the asymptotic power of the log-rank test using all available
+#' follow-up for the superiority of treatment over control.  }
+#' \item{powerLRtauToverC}{the asymptotic power of the log-rank test using follow-up to
+#' time tau for the superiority of treatment over control.  }
 #' \item{pKME}{the probability that you will be able to estimate RMST
 #' difference at time tau using the standard Kaplan-Meier estimator.}
 #' @export
@@ -44,8 +50,9 @@ shortest_duration<-function(survdefC, survdefT, tau, power, accrual_rate, pKME=.
                             alpha = 0.025, altdesign = F, multiplier=1.1){
     RMST_truediff<-integrate(function(x) survdefT$S(x)-survdefC$S(x),
                              lower = 0, upper = tau)$value
+    if (RMST_truediff<0) stop('True RMST in treatment arm is less than true RMST in control arm; cannot design a trial to show treatment is superior.')
     RMST_trueSE <- RMST_truediff/(qnorm(1-alpha)-qnorm(1-power))
-    powtau<-RMSTpow(survdefC, survdefT,k1 = tau, k2 = 0,tau = tau, n = tau*accrual_rate)$powerRMST
+    powtau<-RMSTpow(survdefC, survdefT,k1 = tau, k2 = 0,tau = tau, n = tau*accrual_rate)$powerRMSTToverC
     pkme_tau<-RMSTeval(survdefC, survdefT, tau, 0, tau, tau*accrual_rate)
     if (powtau>=power & pkme_tau>=pKME) return(tau)
     # The shortest trial will be the one that accrues the whole time. We'll find
@@ -92,6 +99,10 @@ shortest_duration<-function(survdefC, survdefT, tau, power, accrual_rate, pKME=.
     if ((n %% 2) == 1) n<-n+1 # Get integer n, the smallest even number >= n
     k1<-n/accrual_rate
     k2<-max(0,trial_length-k1)
-    return(c(list(k1=k1, k2 =k2, duration = k1+k2),
-             RMSTpow(survdefC, survdefT, k1, k2, tau = tau, n=n)))
+    res<-RMSTpow(survdefC, survdefT, k1, k2, tau = tau, n=n)
+    return(c(list(n=n, k1=k1, k2 =k2, duration = k1+k2),
+             powerRMSTToverC=res$powerRMSTToverC,
+             powerLRToverC=res$powerLRToverC,
+             powerLRtauToverC=res$powerLRtauToverC,
+             pMKE = res$pKME))
 }

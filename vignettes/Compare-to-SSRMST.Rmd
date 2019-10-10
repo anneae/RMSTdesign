@@ -53,5 +53,21 @@ RMSTpow(arm0, arm1alt, k1=70, k2=908-70, tau = 900, n=30*70)
 ```
 Again the power returned by both packages is similar: 91.7% for the `SSRMST` package, and 91.1% for the `RMSTpow` package. 
 
+Next, consider changing tau to 450. 
+```{r}
+ssrmst(ac_rate=ac_rate, ac_period=ac_period, tot_time=tot_time, tau=450, shape0=shape0, scale0=scale0, shape1=shape1, scale1=16000, seed=2017)
+
+RMSTpow(arm0, arm1alt, k1=70, k2=908-70, tau = 450, n=30*70)
+```
+Again, the power returned by both packages is similar: 63.7% for the `SSRMST` package, and 63.7% for the `RMSTpow` package. 
+
+Finally, consider changing the accrual period to 35 months.
+```{r}
+ssrmst(ac_rate=ac_rate, ac_period=35, tot_time=tot_time, tau=tau, shape0=shape0, scale0=scale0, shape1=shape1, scale1=16000, seed=2017)
+
+RMSTpow(arm0, arm1alt, k1=35, k2=908-35, tau = 900, n=30*35)
+```
+Again, the power returned by both packages is similar: 65.5% for the `SSRMST` package, and 64.8% for the `RMSTpow` package. 
+
 [^1]: Scirica BM, Bhatt DL, et al. Saxagliptin and Cardiovascular Outcomes in Patients with Type 2 Diabetes Mellitus. N Engl J Med. 2013, 369, 1317-26.
 [^2]: https://cran.r-project.org/web/packages/SSRMST/vignettes/vignette-ssrmst.html

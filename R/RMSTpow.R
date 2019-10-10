@@ -46,7 +46,10 @@
 #'
 #' @return a list with components
 #' \item{n}{the user-specified n, or if n was left blank, the n needed to achieve the user-specified power.}
-#' \item{powerRMST}{the user-specified power, or if power was left blank, the asymptotic power of the RMST test.}
+#' \item{powerRMST}{the user-specified power, or if power was left blank, the asymptotic power of the RMST test.
+#' If `one-sided=T`, `powerRMST` is equivalent to `powerRMSToverC`.
+#' If `one-sided=F`, `powerRMST` is equivalent to the sum of the power of a one-sided test in each direction, i.e.
+#' `powerRMSToverC + powerRMSCoverT`.}
 #' \item{powerRMSToverC}{the asymptotic power for a test of superiority of treatment over control.}
 #' \item{powerRMSCoverT}{the asymptotic power for a test of superiority of control over treatment.
 #'  If a one-sided test is specified, this is set to NA.}

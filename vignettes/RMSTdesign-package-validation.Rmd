@@ -16,21 +16,355 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(RMSTdesign)
+library(SSRMST)
+library(knitr)
+library(PWEALL)
+library(survival)
+library(pracma)
 ```
 
-This vignette validates the internal functions of the `RMSTdesign` package by using them on a toy dataset and comparing the result to by-hand calculations. Then, it confirms that the power returned by the `RMSTpow` function is close to the empirical power across a wide variety of scenarios. For Weibull scenarios, we also confirm that the power is close to the empirical power from the `SSRMST` package.
+This vignette validates the internal functions of the `RMSTdesign` package by comparing the results to by-hand calculations in the simple setting of exponential survival distributions and no censoring before time $\tau$. This vignette also confirms that the asymptotic power and pKME returned by the `RMSTpow` function are close to their empirical conterparts across several scenarios. Along with the results in our paper[^1] (Tables 1 and 3 which show that the power of the RMST-based test and pKME calculated using our package match their empirical counterparts across 4 scenarios, various values of k1, k2, tau and n, and a table in Appendix I which shows that the empirical variance of RMST matches the variance calcuated using our package), the vignette "Compare-to-SSRMST" (which shows that our results match simulation results from the `SSRMST` package[^2] in 4 scenarios), and the vignette "GOG111-Trial", which shows that we get almost the same sample size as the one calculated by Royston and Parmar[^3] (with the difference likely due to different approaches for calculating the restricted mean survival difference and its variance), these results validate that the calculations in the `RMSTdesign` package are correct and that the package can be used for trial design.  
 
-##The evar function
+##Validating the evar function 
+The `evar` function calculates the variance of the estimated difference in RMST according to equation 1 in our paper. We will confirm that it gives the correct result in a simple setting. In the setting of an exponential survival distribution and no censoring before time $\tau$, the asymptotic variance of the estimated mean survival time is equal to 
+
+$$\frac{1}{n\lambda^2}(1-\exp(-\lambda\tau)\times\{\exp(-\lambda\tau)+2\lambda\tau\})$$
+ 
 ```{r, echo=F}
+evar<-function(survdefo,  k1, k2, tau, ttime, n){
+    P_enroll<-function(t,x) {
+        if (t<=x) 0
+        else if (x<t & t<=(k1+x))  (t-x)/k1
+        else if (k1+x <t & t<= k1+k2) 1
+        else if (k1+x <t & all.equal(t, k1+k2)) 1}
+    toint<-function(u) sapply(u, function(x) integrate(survdefo$S, lower = x, upper = tau)$value^2*survdefo$h(x)/(n*survdefo$S(x)*P_enroll(ttime, x)))
+    integrate(toint, lower = 0, upper = tau)$value
+}
 ```
 
-##The powfn function
+Below, the variance at the end of the trial (calculated with `evar`) is compared to the variance calculcated according to the formula above for several combinations of design parameters:
+```{r}
+n<-200; lambda<-0.07; tau <-10
+evar(survdef(haz = lambda), 0, tau, tau, tau, n)
+(1/(n*lambda^2))*(1-exp(-lambda*tau)*(exp(-lambda*tau)+2*lambda*tau))
 
-##The RMSTeval function
+n<-200; lambda<-0.035; tau <-10
+evar(survdef(haz = lambda), 0, tau, tau, tau, n)
+(1/(n*lambda^2))*(1-exp(-lambda*tau)*(exp(-lambda*tau)+2*lambda*tau))
 
-##Simulation studies: Weibull scenarios 
-SSRMST 
+n<-200; lambda<-0.07; tau <-20
+evar(survdef(haz = lambda), 0, tau, tau, tau, n)
+(1/(n*lambda^2))*(1-exp(-lambda*tau)*(exp(-lambda*tau)+2*lambda*tau))
+```
 
-##Simulation studies: Piecewise exponential distributions
+##Validating the powfn function
+The `powfn` function calculates the power of the one-sided test of the difference in RMST according to equation 3 in our paper. We will confirm that it gives the correct result in a simple setting. In the setting of exponential survival distributions in each group and no censoring before time $\tau$, the sampling distribution of the test statistic Z is has a mean of 
+$$\mu=\frac{\frac{1-p^r}{r}-(1-p)}{\frac{1}{\sqrt(n/2)}\sqrt(\frac{1}{r^2}(1-p^r\{p^r+2r\}))}$$
 
+where $r$ is the pazard ratio and $p$ is the survival probability at time $\tau$ in the control group.
 
+```{r, echo = F}
+powfn<-function(survdefC, survdefT, k1, k2, tau, n, alpha){
+    RMST_truediff<-integrate(function(x) survdefT$S(x)-survdefC$S(x),
+                             lower = 0, upper = tau)$value
+    RMST_trueSE<-sqrt(evar(survdefT, k1, k2, tau, k1+k2, n/2)+
+                          evar(survdefC, k1, k2, tau, k1+k2, n/2))
+    return(1-pnorm(qnorm(1-alpha)-RMST_truediff/RMST_trueSE))
+}
+```
+
+Below, the power at the end of the trial (calculated with `powfn`) is compared to the power calculcated according to the formula above for several combinations of design parameters:
+```{r}
+n<-200; lambda<-0.07; r<-0.5; tau <-10; alpha = 0.025
+p<-survdef(haz = lambda)$S(tau)
+mu_num<-(1-p^r)/r-(1-p)
+mu_denom<-(n/2)^(-1/2)*sqrt(r^-2*(1-p^r*(p^r+2*r*-log(p)))+(1-p*(p+2*-log(p))))
+1-pnorm(qnorm(1-alpha)-mu_num/mu_denom)
+powfn(survdef(haz = lambda), survdef(haz = r*lambda), k1=0, k2=tau, 
+      tau = tau, n = n, alpha=alpha)
+
+n<-100; lambda<-0.07; r<-0.5; tau <-10; alpha = 0.025
+p<-survdef(haz = lambda)$S(tau)
+mu_num<-(1-p^r)/r-(1-p)
+mu_denom<-(n/2)^(-1/2)*sqrt(r^-2*(1-p^r*(p^r+2*r*-log(p)))+(1-p*(p+2*-log(p))))
+1-pnorm(qnorm(1-alpha)-mu_num/mu_denom)
+powfn(survdef(haz = lambda), survdef(haz = r*lambda), k1=0, k2=tau, 
+      tau = tau, n = n, alpha=alpha)
+
+n<-200; lambda<-0.07; r<-0.9; tau <-10; alpha = 0.025
+p<-survdef(haz = lambda)$S(tau)
+mu_num<-(1-p^r)/r-(1-p)
+mu_denom<-(n/2)^(-1/2)*sqrt(r^-2*(1-p^r*(p^r+2*r*-log(p)))+(1-p*(p+2*-log(p))))
+1-pnorm(qnorm(1-alpha)-mu_num/mu_denom)
+powfn(survdef(haz = lambda), survdef(haz = r*lambda), k1=0, k2=tau, 
+      tau = tau, n = n, alpha=alpha)
+
+n<-200; lambda<-0.035; r<-0.5; tau <-10; alpha = 0.025
+p<-survdef(haz = lambda)$S(tau)
+mu_num<-(1-p^r)/r-(1-p)
+mu_denom<-(n/2)^(-1/2)*sqrt(r^-2*(1-p^r*(p^r+2*r*-log(p)))+(1-p*(p+2*-log(p))))
+1-pnorm(qnorm(1-alpha)-mu_num/mu_denom)
+powfn(survdef(haz = lambda), survdef(haz = r*lambda), k1=0, k2=tau, 
+      tau = tau, n = n, alpha=alpha)
+
+n<-200; lambda<-0.07; r<-0.5; tau <-10; alpha = 0.05
+p<-survdef(haz = lambda)$S(tau)
+mu_num<-(1-p^r)/r-(1-p)
+mu_denom<-(n/2)^(-1/2)*sqrt(r^-2*(1-p^r*(p^r+2*r*-log(p)))+(1-p*(p+2*-log(p))))
+1-pnorm(qnorm(1-alpha)-mu_num/mu_denom)
+powfn(survdef(haz = lambda), survdef(haz = r*lambda), k1=0, k2=tau, 
+      tau = tau, n = n, alpha=alpha)
+
+```
+
+##Validating the RMSTeval function
+The `RMSTeval` function calculates the probability the difference in the restricted mean survival time at time $\tau$ will be estimable using the Kaplan-Meier estimator, equation 4 in our paper. Consider a very simple situation where survival in each group is eqaul to 1 until time $\tau$ and $\tau<k_1$. Then we get the probability $p_{KME}$ is estimable in each group is eqaul to 
+$$ 1-\int_0^\tau \left(\frac{x}{k_1}\right)^{n-1}\frac{1}{k_1}dx=1-\left(\frac{\tau}{k_1}\right)^n$$
+In the two-sample setting, the number of people in each group is n/2. The probability that we can estimate the RMST in both groups with the Kaplan-Meier estimator in both groups is the product of the probability we can estimate it in each group:
+$$\left[1-\left(\frac{\tau}{k_1}\right)^{n/2}\right]^2$$
+```{r, echo=F}
+RMSTeval<-function(survdefC, survdefT, k1, k2, tau, n){
+    if (tau<=k2) return(1)
+    P_x_followup<-function(x){ # density for exactly x amount of followup
+        if (x<k2) 0
+        else if (x<=(k1+k2)) 1/(k1)
+        else 0
+    }
+    CDF_x_followup<-function(x){ # CDF for x amount of followup
+        if (x<k2) 0
+        else if (x<=(k1+k2)) (x-k2)/(k1)
+        else 1
+    }
+    # control group
+    toint<-function(u) sapply(u, function(t) (1-(1-CDF_x_followup(t))*survdefC$S(t))^(n/2-1)*P_x_followup(t)*survdefC$S(t))
+    peval_c<-1-(n/2)*integrate(toint, lower = k2, upper = min(k1+k2, tau))$value
+    # trt group
+    toint<-function(u) sapply(u, function(t) (1-(1-CDF_x_followup(t))*survdefT$S(t))^(n/2-1)*P_x_followup(t)*survdefT$S(t))
+    peval_t<-1-(n/2)*integrate(toint, lower = k2, upper = min(k1+k2, tau))$value
+    return(peval_c*peval_t)
+}
+```
+Below, the probability we can use the Kaplan-Meier estimator to estimate the RMST difference at the end of the trial (calculated with `RMSTeval`) is compared to the probability calculcated according to the formula above for several combinations of design parameters:
+```{r}
+k1=10;tau = 9.9; n=500
+RMSTeval(survdef(haz = 0), survdef(haz = 0),k1 = k1, k2 = 0, tau = tau, n=n)
+(1-(tau/k1)^(n/2))^2
+
+k1=10;tau = 9.9; n=200
+RMSTeval(survdef(haz = 0), survdef(haz = 0),k1 = k1, k2 = 0, tau = tau, n=n)
+(1-(tau/k1)^(n/2))^2
+
+k1=12; tau = 9.9; n=500
+RMSTeval(survdef(haz = 0), survdef(haz = 0),k1 = k1, k2 = 0, tau = tau, n=n)
+(1-(tau/k1)^(n/2))^2
+
+k1=10; tau = 9.8; n=500
+RMSTeval(survdef(haz = 0), survdef(haz = 0),k1 = k1, k2 = 0, tau = tau, n=n)
+(1-(tau/k1)^(n/2))^2
+
+k1=10; tau = 10; n=500
+RMSTeval(survdef(haz = 0), survdef(haz = 0),k1 = k1, k2 = 0, tau = tau, n=n)
+(1-(tau/k1)^(n/2))^2
+
+```
+
+##Simulation notes
+We do not use our own function `RMSTpow` with `sim=T` to do the simulations below; rather we use `rpwe` from the `PWEALL` package and `rweibull` to generate the simulated data for piecewise expoenential and Weibull distributions, respectively. We use `summary(survfit())` with the `rmean` option to calculate the RMST difference estimate and its estimated variance. Then, we calculate the Z statistic and compare it to a standard normal distribution to reject or fail to reject the null hypothesis. 
+
+##Simulations for scenario 4, but varying the hazard rate and hazard ratio 
+The plots in Figure S9, Scenario 4 show the asymptotic power across a range of control group hazard rates and hazard ratios, including the scenarios used below. In the original Scenario 4, the hazard rate was about 0.07 and the hazard ratio was 0.67 for the first 15 months, then 1.2. Below, we will consider 4 values of the hazard rate and 4 values of the hazard ratio over the first 15 months. The hazard ratio after 15 months will remain 1.2. Empirical quantities will be calculated using 1000 simulations. 
+```{r}
+hrate<-c(.05, .1, .15, .2, .07, .07, .07, .07)
+hratio<-c(.67, .67, .67, .67, .25, .5, .75, 1)
+k1<-24
+k2<-36
+tau<-48
+n<-780
+alpha = 0.05
+M<-1000
+restable<-as.data.frame(matrix(ncol=8, nrow = 8))
+colnames(restable)<-c('Haz rate','HR',
+                      'Asympt RMST power sup','Asympt RMST power inf','Asymp pKME',
+                      'Emp RMST power sup','Emp RMST power inf','Emp pKME')
+restable[,1]<-hrate
+restable[,2]<-hratio
+
+for (i in 1:8){
+    scen1<-survdef(haz = hrate[i])
+    scen4T<-survdef(haz = c(hratio[i], 1.2)*hrate[i], times = 15)
+    res<-RMSTpow(scen1, scen4T, k1, k2, tau, n = n, two.sided = T)
+    restable[i,3]<-res$powerRMSTToverC
+    restable[i,4]<-res$powerRMSTCoverT
+    restable[i,5]<-res$pKME
+    simres<-matrix(nrow = M, ncol = 3)
+    for (m in 1:M){
+        grp<-c(rep('c', n/2), rep('t', n/2))
+        enrol<-runif(n, min=0, max = k1)
+        con<-rexp(n/2, rate = hrate[i])
+        trt<-rpwe(n/2, rate = c(hratio[i]*hrate[i], 1.2*hrate[i]), tchange = c(0,15))$r
+        event<-c(con, trt)+enrol< k1+k2
+        time<-pmin(c(con, trt),  k1+k2-enrol)
+        surv_res<-survfit(Surv(time, event)~grp, timefix = F)
+        c.time<-surv_res$time[1:surv_res$strata[1]]
+        c.cens<-surv_res$n.censor[1:surv_res$strata[1]]
+        t.time<-surv_res$time[surv_res$strata[1]+1:surv_res$strata[2]]
+        t.cens<-surv_res$n.censor[surv_res$strata[1]+1:surv_res$strata[2]]
+        
+        simres[m,3]<-T # is RMST difference estimable at time tau?
+        if (c.cens[length(c.cens)]>0 & tau > max(c.time)) simres[m,3]<-F
+        if (t.cens[length(c.cens)]>0 & tau > max(t.time)) simres[m,3]<-F
+        summ<-summary(surv_res, rmean = tau)$table
+        RMST_diff<-summ[2,5]-summ[1,5]
+        simres[m,1]<-RMST_diff/(sqrt(summ[2,6]^2 + summ[1,6]^2))>qnorm(1-alpha/2)
+        simres[m,2]<-(RMST_diff)/(sqrt(summ[2,6]^2 + summ[1,6]^2))<qnorm(alpha/2)
+    }
+    restable[i,6]<-mean(simres[,1])
+    restable[i,7]<-mean(simres[,2])
+    restable[i,8]<-mean(simres[,3])
+}
+```
+
+In the table below, Asmypt indicates asymptotic (calculated using our package) and Emp indicates empirical (calculated based on 1000 simulations). Sup indicates the power to conclude treatment is superior to control and Inf indicates the power to conclude that control is superior to treatment. We see that the asymptotic quantities are close to their asymptotic counterparts. 
+```{r, echo=F}
+kable(restable)
+```
+
+##Simulation for crossing survival curves, treatment group is favored initially
+The scenario here is as in Figure S6 with the curves crossing at 20 months. We will consider various values of k1, k2 and tau
+```{r}
+scenC<-survdef(surv = .5, times = 10)
+# Want to find b such that scen1C$S(t) = exp(-(t/b)^a)
+# This will give the webull surve with shape = a that crosses scen1C at time = t
+a<- 1.5# shape param
+t<-20
+b<- t/(-log(scenC$S(t)))^(1/a)
+scenT<-survdefWeibull(shape = a, scale = b)
+plotsurvdef(scenC, scenT, xupper = 60)
+```
+
+```{r}
+k1vec<-c(12,36,24,24,24,24)
+k2vec<-c(36,36,12,24,36,36)
+tauvec<-c(36,36,36,36,24,48)
+
+n<-780
+alpha = 0.05
+M<-1000
+restable<-as.data.frame(matrix(ncol=9, nrow = 6))
+colnames(restable)<-c('k1','k2','tau',
+                      'Asympt RMST power sup','Asympt RMST power inf','Asymp pKME',
+                      'Emp RMST power sup','Emp RMST power inf','Emp pKME')
+restable[,1]<-k1vec
+restable[,2]<-k2vec
+restable[,3]<-tauvec
+
+for (i in 1:6){
+    res<-RMSTpow(scenC, scenT, k1vec[i], k2vec[i], tauvec[i], n = n, two.sided = T)
+    restable[i,4]<-res$powerRMSTToverC
+    restable[i,5]<-res$powerRMSTCoverT
+    restable[i,6]<-res$pKME
+    simres<-matrix(nrow = M, ncol = 3)
+    for (m in 1:M){
+        grp<-c(rep('c', n/2), rep('t', n/2))
+        enrol<-runif(n, min=0, max = k1vec[i])
+        con<-rexp(n/2, rate = -log(.5)/10)
+        trt<-rweibull(n/2, shape=a, scale = b)
+        event<-c(con, trt)+enrol< k1vec[i]+k2vec[i]
+        time<-pmin(c(con, trt),  k1vec[i]+k2vec[i]-enrol)
+        surv_res<-survfit(Surv(time, event)~grp, timefix = F)
+        c.time<-surv_res$time[1:surv_res$strata[1]]
+        c.cens<-surv_res$n.censor[1:surv_res$strata[1]]
+        t.time<-surv_res$time[surv_res$strata[1]+1:surv_res$strata[2]]
+        t.cens<-surv_res$n.censor[surv_res$strata[1]+1:surv_res$strata[2]]
+        
+        simres[m,3]<-T # is RMST difference estimable at time tau?
+        if (c.cens[length(c.cens)]>0 & tauvec[i] > max(c.time)) simres[m,3]<-F
+        if (t.cens[length(c.cens)]>0 & tauvec[i] > max(t.time)) simres[m,3]<-F
+        summ<-summary(surv_res, rmean = tauvec[i])$table
+        RMST_diff<-summ[2,5]-summ[1,5]
+        simres[m,1]<-RMST_diff/(sqrt(summ[2,6]^2 + summ[1,6]^2))>qnorm(1-alpha/2)
+        simres[m,2]<-(RMST_diff)/(sqrt(summ[2,6]^2 + summ[1,6]^2))<qnorm(alpha/2)
+    }
+    restable[i,7]<-mean(simres[,1])
+    restable[i,8]<-mean(simres[,2])
+    restable[i,9]<-mean(simres[,3])
+}
+
+```
+
+In the table below, Asmypt indicates asymptotic (calculated using our package) and Emp indicates empirical (calculated based on 1000 simulations). Sup indicates the power to conclude treatment is superior to control and Inf indicates the power to conclude that control is superior to treatment. We see that the asymptotic quantities are close to their asymptotic counterparts. 
+```{r, echo=F}
+kable(restable)
+```
+
+##Simulation for crossing survival curves, control group is favored intially
+The scenario here is as in Figure S7 with the curves crossing at 20 months. We will consider various values of k1, k2 and tau
+```{r}
+scenC<-survdef(surv = .5, times = 10)
+# Want to find b such that scen1C$S(t) = exp(-(t/b)^a)
+# This will give the webull surve with shape = a that crosses scen1C at time = t
+a<- .67# shape param
+t<-20
+b<- t/(-log(scenC$S(t)))^(1/a)
+scenT<-survdefWeibull(shape = a, scale = b)
+plotsurvdef(scenC, scenT, xupper = 60)
+```
+
+```{r}
+k1vec<-c(12,36,24,24,24,24)
+k2vec<-c(36,36,12,24,36,36)
+tauvec<-c(36,36,36,36,24,48)
+
+n<-780
+alpha = 0.05
+M<-1000
+restable<-as.data.frame(matrix(ncol=9, nrow = 6))
+colnames(restable)<-c('k1','k2','tau',
+                      'Asympt RMST power sup','Asympt RMST power inf','Asymp pKME',
+                      'Emp RMST power sup','Emp RMST power inf','Emp pKME')
+restable[,1]<-k1vec
+restable[,2]<-k2vec
+restable[,3]<-tauvec
+
+for (i in 1:6){
+    res<-RMSTpow(scenC, scenT, k1vec[i], k2vec[i], tauvec[i], n = n, two.sided = T)
+    restable[i,4]<-res$powerRMSTToverC
+    restable[i,5]<-res$powerRMSTCoverT
+    restable[i,6]<-res$pKME
+    simres<-matrix(nrow = M, ncol = 3)
+    for (m in 1:M){
+        grp<-c(rep('c', n/2), rep('t', n/2))
+        enrol<-runif(n, min=0, max = k1vec[i])
+        con<-rexp(n/2, rate = -log(.5)/10)
+        trt<-rweibull(n/2, shape=a, scale = b)
+        event<-c(con, trt)+enrol< k1vec[i]+k2vec[i]
+        time<-pmin(c(con, trt),  k1vec[i]+k2vec[i]-enrol)
+        surv_res<-survfit(Surv(time, event)~grp, timefix = F)
+        c.time<-surv_res$time[1:surv_res$strata[1]]
+        c.cens<-surv_res$n.censor[1:surv_res$strata[1]]
+        t.time<-surv_res$time[surv_res$strata[1]+1:surv_res$strata[2]]
+        t.cens<-surv_res$n.censor[surv_res$strata[1]+1:surv_res$strata[2]]
+        
+        simres[m,3]<-T # is RMST difference estimable at time tau?
+        if (c.cens[length(c.cens)]>0 & tauvec[i] > max(c.time)) simres[m,3]<-F
+        if (t.cens[length(c.cens)]>0 & tauvec[i] > max(t.time)) simres[m,3]<-F
+        summ<-summary(surv_res, rmean = tauvec[i])$table
+        RMST_diff<-summ[2,5]-summ[1,5]
+        simres[m,1]<-RMST_diff/(sqrt(summ[2,6]^2 + summ[1,6]^2))>qnorm(1-alpha/2)
+        simres[m,2]<-(RMST_diff)/(sqrt(summ[2,6]^2 + summ[1,6]^2))<qnorm(alpha/2)
+    }
+    restable[i,7]<-mean(simres[,1])
+    restable[i,8]<-mean(simres[,2])
+    restable[i,9]<-mean(simres[,3])
+}
+
+```
+
+In the table below, Asmypt indicates asymptotic (calculated using our package) and Emp indicates empirical (calculated based on 1000 simulations). Sup indicates the power to conclude treatment is superior to control and Inf indicates the power to conclude that control is superior to treatment. We see that the asymptotic quantities are close to their asymptotic counterparts. 
+```{r, echo=F}
+kable(restable)
+```
+
+[^1]: Eaton A, Therneau T and Le-Rademacher J. Designing Clinical Trials with (Restricted) Mean Survival Time Endpoint – Practical Considerations.
+[^2]: https://cran.r-project.org/web/packages/SSRMST/vignettes/vignette-ssrmst.html
+[^3]: Royston P and Parmar MK. Restricted mean survival time: an alternative to the hazard ratio for the design and analysis of randomized trials with a time-to-event outcome. BMC Med Res Methodol 2013; 13: 152. 

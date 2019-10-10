@@ -196,6 +196,88 @@ arm1&lt;-<span class="kw"><a href="../reference/survdefWeibull.html">survdefWeib
 <span class="co">#&gt; $pKME</span>
 <span class="co">#&gt; [1] 1</span></code></pre></div>
 <p>Again the power returned by both packages is similar: 91.7% for the <code>SSRMST</code> package, and 91.1% for the <code>RMSTpow</code> package.</p>
+<p>Next, consider changing tau to 450.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/SSRMST/topics/ssrmst">ssrmst</a></span>(<span class="dt">ac_rate=</span>ac_rate, <span class="dt">ac_period=</span>ac_period, <span class="dt">tot_time=</span>tot_time, <span class="dt">tau=</span><span class="dv">450</span>, <span class="dt">shape0=</span>shape0, <span class="dt">scale0=</span>scale0, <span class="dt">shape1=</span>shape1, <span class="dt">scale1=</span><span class="dv">16000</span>, <span class="dt">seed=</span><span class="dv">2017</span>)
+<span class="co">#&gt; Superiority test </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;                           Total arm0 arm1</span>
+<span class="co">#&gt; Sample size                2100 1050 1050</span>
+<span class="co">#&gt; Expected number of events   139   91   48</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Power (separate) </span>
+<span class="co">#&gt;            0.637 </span>
+<span class="co">#&gt; Power (pooled) </span>
+<span class="co">#&gt;          0.637</span>
+
+<span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(arm0, arm1alt, <span class="dt">k1=</span><span class="dv">70</span>, <span class="dt">k2=</span><span class="dv">908</span><span class="op">-</span><span class="dv">70</span>, <span class="dt">tau =</span> <span class="dv">450</span>, <span class="dt">n=</span><span class="dv">30</span><span class="op">*</span><span class="dv">70</span>)
+<span class="co">#&gt; $n</span>
+<span class="co">#&gt; [1] 2100</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMST</span>
+<span class="co">#&gt; [1] 0.6368899</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTToverC</span>
+<span class="co">#&gt; [1] 0.6368899</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.9632719</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.7607574</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $pKME</span>
+<span class="co">#&gt; [1] 1</span></code></pre></div>
+<p>Again, the power returned by both packages is similar: 63.7% for the <code>SSRMST</code> package, and 63.7% for the <code>RMSTpow</code> package.</p>
+<p>Finally, consider changing the accrual period to 35 months.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/SSRMST/topics/ssrmst">ssrmst</a></span>(<span class="dt">ac_rate=</span>ac_rate, <span class="dt">ac_period=</span><span class="dv">35</span>, <span class="dt">tot_time=</span>tot_time, <span class="dt">tau=</span>tau, <span class="dt">shape0=</span>shape0, <span class="dt">scale0=</span>scale0, <span class="dt">shape1=</span>shape1, <span class="dt">scale1=</span><span class="dv">16000</span>, <span class="dt">seed=</span><span class="dv">2017</span>)
+<span class="co">#&gt; Superiority test </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;                           Total arm0 arm1</span>
+<span class="co">#&gt; Sample size                1050  525  525</span>
+<span class="co">#&gt; Expected number of events    71   46   25</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Power (separate) </span>
+<span class="co">#&gt;            0.655 </span>
+<span class="co">#&gt; Power (pooled) </span>
+<span class="co">#&gt;         0.6535</span>
+
+<span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(arm0, arm1alt, <span class="dt">k1=</span><span class="dv">35</span>, <span class="dt">k2=</span><span class="dv">908</span><span class="op">-</span><span class="dv">35</span>, <span class="dt">tau =</span> <span class="dv">900</span>, <span class="dt">n=</span><span class="dv">30</span><span class="op">*</span><span class="dv">35</span>)
+<span class="co">#&gt; $n</span>
+<span class="co">#&gt; [1] 1050</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMST</span>
+<span class="co">#&gt; [1] 0.6481269</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTToverC</span>
+<span class="co">#&gt; [1] 0.6481269</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerRMSTCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRToverC</span>
+<span class="co">#&gt; [1] 0.7637835</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauToverC</span>
+<span class="co">#&gt; [1] 0.763348</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $powerLRtauCoverT</span>
+<span class="co">#&gt; [1] NA</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $pKME</span>
+<span class="co">#&gt; [1] 1</span></code></pre></div>
+<p>Again, the power returned by both packages is similar: 65.5% for the <code>SSRMST</code> package, and 64.8% for the <code>RMSTpow</code> package.</p>
 <div class="footnotes">
 <hr>
 <ol>

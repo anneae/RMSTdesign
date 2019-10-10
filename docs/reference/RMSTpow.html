@@ -225,7 +225,10 @@ the power of a two-sided test is the sum of two.</p></td>
 
     <p>a list with components</p>
 <dt>n</dt><dd><p>the user-specified n, or if n was left blank, the n needed to achieve the user-specified power.</p></dd>
-<dt>powerRMST</dt><dd><p>the user-specified power, or if power was left blank, the asymptotic power of the RMST test.</p></dd>
+<dt>powerRMST</dt><dd><p>the user-specified power, or if power was left blank, the asymptotic power of the RMST test.
+If <code>one-sided=T</code>, <code>powerRMST</code> is equivalent to <code>powerRMSToverC</code>.
+If <code>one-sided=F</code>, <code>powerRMST</code> is equivalent to the sum of the power of a one-sided test in each direction, i.e.
+<code>powerRMSToverC + powerRMSCoverT</code>.</p></dd>
 <dt>powerRMSToverC</dt><dd><p>the asymptotic power for a test of superiority of treatment over control.</p></dd>
 <dt>powerRMSCoverT</dt><dd><p>the asymptotic power for a test of superiority of control over treatment.
 If a one-sided test is specified, this is set to NA.</p></dd>

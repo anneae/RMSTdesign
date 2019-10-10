@@ -96,28 +96,572 @@
 
     
     
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RMSTdesign)</code></pre></div>
-<p>This vignette validates the internal functions of the <code>RMSTdesign</code> package by using them on a toy dataset and comparing the result to by-hand calculations. Then, it confirms that the power returned by the <code>RMSTpow</code> function is close to the empirical power across a wide variety of scenarios. For Weibull scenarios, we also confirm that the power is close to the empirical power from the <code>SSRMST</code> package.</p>
-<div id="the-evar-function" class="section level2">
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RMSTdesign)
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(SSRMST)
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(knitr)
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(PWEALL)
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(survival)
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(pracma)</code></pre></div>
+<p>This vignette validates the internal functions of the <code>RMSTdesign</code> package by comparing the results to by-hand calculations in the simple setting of exponential survival distributions and no censoring before time <span class="math inline">\(\tau\)</span>. This vignette also confirms that the asymptotic power and pKME returned by the <code>RMSTpow</code> function are close to their empirical conterparts across several scenarios. Along with the results in our paper<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> (Tables 1 and 3 which show that the power of the RMST-based test and pKME calculated using our package match their empirical counterparts across 4 scenarios, various values of k1, k2, tau and n, and a table in Appendix I which shows that the empirical variance of RMST matches the variance calcuated using our package), the vignette “Compare-to-SSRMST” (which shows that our results match simulation results from the <code>SSRMST</code> package<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> in 4 scenarios), and the vignette “GOG111-Trial”, which shows that we get almost the same sample size as the one calculated by Royston and Parmar<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a> (with the difference likely due to different approaches for calculating the restricted mean survival difference and its variance), these results validate that the calculations in the <code>RMSTdesign</code> package are correct and that the package can be used for trial design.</p>
+<div id="validating-the-evar-function" class="section level2">
 <h2 class="hasAnchor">
-<a href="#the-evar-function" class="anchor"></a>The evar function</h2>
+<a href="#validating-the-evar-function" class="anchor"></a>Validating the evar function</h2>
+<p>The <code>evar</code> function calculates the variance of the estimated difference in RMST according to equation 1 in our paper. We will confirm that it gives the correct result in a simple setting. In the setting of an exponential survival distribution and no censoring before time <span class="math inline">\(\tau\)</span>, the asymptotic variance of the estimated mean survival time is equal to</p>
+<p><span class="math display">\[\frac{1}{n\lambda^2}(1-\exp(-\lambda\tau)\times\{\exp(-\lambda\tau)+2\lambda\tau\})\]</span></p>
+<p>Below, the variance at the end of the trial (calculated with <code>evar</code>) is compared to the variance calculcated according to the formula above for several combinations of design parameters:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n&lt;-<span class="dv">200</span>; lambda&lt;-<span class="fl">0.07</span>; tau &lt;-<span class="dv">10</span>
+<span class="kw">evar</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda), <span class="dv">0</span>, tau, tau, tau, n)
+<span class="co">#&gt; [1] 0.05937103</span>
+(<span class="dv">1</span><span class="op">/</span>(n<span class="op">*</span>lambda<span class="op">^</span><span class="dv">2</span>))<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="op">-</span>lambda<span class="op">*</span>tau)<span class="op">*</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="op">-</span>lambda<span class="op">*</span>tau)<span class="op">+</span><span class="dv">2</span><span class="op">*</span>lambda<span class="op">*</span>tau))
+<span class="co">#&gt; [1] 0.05937103</span>
+
+n&lt;-<span class="dv">200</span>; lambda&lt;-<span class="fl">0.035</span>; tau &lt;-<span class="dv">10</span>
+<span class="kw">evar</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda), <span class="dv">0</span>, tau, tau, tau, n)
+<span class="co">#&gt; [1] 0.04135932</span>
+(<span class="dv">1</span><span class="op">/</span>(n<span class="op">*</span>lambda<span class="op">^</span><span class="dv">2</span>))<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="op">-</span>lambda<span class="op">*</span>tau)<span class="op">*</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="op">-</span>lambda<span class="op">*</span>tau)<span class="op">+</span><span class="dv">2</span><span class="op">*</span>lambda<span class="op">*</span>tau))
+<span class="co">#&gt; [1] 0.04135932</span>
+
+n&lt;-<span class="dv">200</span>; lambda&lt;-<span class="fl">0.07</span>; tau &lt;-<span class="dv">20</span>
+<span class="kw">evar</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda), <span class="dv">0</span>, tau, tau, tau, n)
+<span class="co">#&gt; [1] 0.2537943</span>
+(<span class="dv">1</span><span class="op">/</span>(n<span class="op">*</span>lambda<span class="op">^</span><span class="dv">2</span>))<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="op">-</span>lambda<span class="op">*</span>tau)<span class="op">*</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="op">-</span>lambda<span class="op">*</span>tau)<span class="op">+</span><span class="dv">2</span><span class="op">*</span>lambda<span class="op">*</span>tau))
+<span class="co">#&gt; [1] 0.2537943</span></code></pre></div>
 </div>
-<div id="the-powfn-function" class="section level2">
+<div id="validating-the-powfn-function" class="section level2">
 <h2 class="hasAnchor">
-<a href="#the-powfn-function" class="anchor"></a>The powfn function</h2>
+<a href="#validating-the-powfn-function" class="anchor"></a>Validating the powfn function</h2>
+<p>The <code>powfn</code> function calculates the power of the one-sided test of the difference in RMST according to equation 3 in our paper. We will confirm that it gives the correct result in a simple setting. In the setting of exponential survival distributions in each group and no censoring before time <span class="math inline">\(\tau\)</span>, the sampling distribution of the test statistic Z is has a mean of <span class="math display">\[\mu=\frac{\frac{1-p^r}{r}-(1-p)}{\frac{1}{\sqrt(n/2)}\sqrt(\frac{1}{r^2}(1-p^r\{p^r+2r\}))}\]</span></p>
+<p>where <span class="math inline">\(r\)</span> is the pazard ratio and <span class="math inline">\(p\)</span> is the survival probability at time <span class="math inline">\(\tau\)</span> in the control group.</p>
+<p>Below, the power at the end of the trial (calculated with <code>powfn</code>) is compared to the power calculcated according to the formula above for several combinations of design parameters:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n&lt;-<span class="dv">200</span>; lambda&lt;-<span class="fl">0.07</span>; r&lt;-<span class="fl">0.5</span>; tau &lt;-<span class="dv">10</span>; alpha =<span class="st"> </span><span class="fl">0.025</span>
+p&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda)<span class="op">$</span><span class="kw">S</span>(tau)
+mu_num&lt;-(<span class="dv">1</span><span class="op">-</span>p<span class="op">^</span>r)<span class="op">/</span>r<span class="op">-</span>(<span class="dv">1</span><span class="op">-</span>p)
+mu_denom&lt;-(n<span class="op">/</span><span class="dv">2</span>)<span class="op">^</span>(<span class="op">-</span><span class="dv">1</span><span class="op">/</span><span class="dv">2</span>)<span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(r<span class="op">^-</span><span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p<span class="op">^</span>r<span class="op">*</span>(p<span class="op">^</span>r<span class="op">+</span><span class="dv">2</span><span class="op">*</span>r<span class="op">*-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(p)))<span class="op">+</span>(<span class="dv">1</span><span class="op">-</span>p<span class="op">*</span>(p<span class="op">+</span><span class="dv">2</span><span class="op">*-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(p))))
+<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">pnorm</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(<span class="dv">1</span><span class="op">-</span>alpha)<span class="op">-</span>mu_num<span class="op">/</span>mu_denom)
+<span class="co">#&gt; [1] 0.7926675</span>
+<span class="kw">powfn</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> r<span class="op">*</span>lambda), <span class="dt">k1=</span><span class="dv">0</span>, <span class="dt">k2=</span>tau, 
+      <span class="dt">tau =</span> tau, <span class="dt">n =</span> n, <span class="dt">alpha=</span>alpha)
+<span class="co">#&gt; [1] 0.7926675</span>
+
+n&lt;-<span class="dv">100</span>; lambda&lt;-<span class="fl">0.07</span>; r&lt;-<span class="fl">0.5</span>; tau &lt;-<span class="dv">10</span>; alpha =<span class="st"> </span><span class="fl">0.025</span>
+p&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda)<span class="op">$</span><span class="kw">S</span>(tau)
+mu_num&lt;-(<span class="dv">1</span><span class="op">-</span>p<span class="op">^</span>r)<span class="op">/</span>r<span class="op">-</span>(<span class="dv">1</span><span class="op">-</span>p)
+mu_denom&lt;-(n<span class="op">/</span><span class="dv">2</span>)<span class="op">^</span>(<span class="op">-</span><span class="dv">1</span><span class="op">/</span><span class="dv">2</span>)<span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(r<span class="op">^-</span><span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p<span class="op">^</span>r<span class="op">*</span>(p<span class="op">^</span>r<span class="op">+</span><span class="dv">2</span><span class="op">*</span>r<span class="op">*-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(p)))<span class="op">+</span>(<span class="dv">1</span><span class="op">-</span>p<span class="op">*</span>(p<span class="op">+</span><span class="dv">2</span><span class="op">*-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(p))))
+<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">pnorm</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(<span class="dv">1</span><span class="op">-</span>alpha)<span class="op">-</span>mu_num<span class="op">/</span>mu_denom)
+<span class="co">#&gt; [1] 0.5010911</span>
+<span class="kw">powfn</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> r<span class="op">*</span>lambda), <span class="dt">k1=</span><span class="dv">0</span>, <span class="dt">k2=</span>tau, 
+      <span class="dt">tau =</span> tau, <span class="dt">n =</span> n, <span class="dt">alpha=</span>alpha)
+<span class="co">#&gt; [1] 0.5010911</span>
+
+n&lt;-<span class="dv">200</span>; lambda&lt;-<span class="fl">0.07</span>; r&lt;-<span class="fl">0.9</span>; tau &lt;-<span class="dv">10</span>; alpha =<span class="st"> </span><span class="fl">0.025</span>
+p&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda)<span class="op">$</span><span class="kw">S</span>(tau)
+mu_num&lt;-(<span class="dv">1</span><span class="op">-</span>p<span class="op">^</span>r)<span class="op">/</span>r<span class="op">-</span>(<span class="dv">1</span><span class="op">-</span>p)
+mu_denom&lt;-(n<span class="op">/</span><span class="dv">2</span>)<span class="op">^</span>(<span class="op">-</span><span class="dv">1</span><span class="op">/</span><span class="dv">2</span>)<span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(r<span class="op">^-</span><span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p<span class="op">^</span>r<span class="op">*</span>(p<span class="op">^</span>r<span class="op">+</span><span class="dv">2</span><span class="op">*</span>r<span class="op">*-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(p)))<span class="op">+</span>(<span class="dv">1</span><span class="op">-</span>p<span class="op">*</span>(p<span class="op">+</span><span class="dv">2</span><span class="op">*-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(p))))
+<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">pnorm</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(<span class="dv">1</span><span class="op">-</span>alpha)<span class="op">-</span>mu_num<span class="op">/</span>mu_denom)
+<span class="co">#&gt; [1] 0.06832258</span>
+<span class="kw">powfn</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> r<span class="op">*</span>lambda), <span class="dt">k1=</span><span class="dv">0</span>, <span class="dt">k2=</span>tau, 
+      <span class="dt">tau =</span> tau, <span class="dt">n =</span> n, <span class="dt">alpha=</span>alpha)
+<span class="co">#&gt; [1] 0.06832258</span>
+
+n&lt;-<span class="dv">200</span>; lambda&lt;-<span class="fl">0.035</span>; r&lt;-<span class="fl">0.5</span>; tau &lt;-<span class="dv">10</span>; alpha =<span class="st"> </span><span class="fl">0.025</span>
+p&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda)<span class="op">$</span><span class="kw">S</span>(tau)
+mu_num&lt;-(<span class="dv">1</span><span class="op">-</span>p<span class="op">^</span>r)<span class="op">/</span>r<span class="op">-</span>(<span class="dv">1</span><span class="op">-</span>p)
+mu_denom&lt;-(n<span class="op">/</span><span class="dv">2</span>)<span class="op">^</span>(<span class="op">-</span><span class="dv">1</span><span class="op">/</span><span class="dv">2</span>)<span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(r<span class="op">^-</span><span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p<span class="op">^</span>r<span class="op">*</span>(p<span class="op">^</span>r<span class="op">+</span><span class="dv">2</span><span class="op">*</span>r<span class="op">*-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(p)))<span class="op">+</span>(<span class="dv">1</span><span class="op">-</span>p<span class="op">*</span>(p<span class="op">+</span><span class="dv">2</span><span class="op">*-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(p))))
+<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">pnorm</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(<span class="dv">1</span><span class="op">-</span>alpha)<span class="op">-</span>mu_num<span class="op">/</span>mu_denom)
+<span class="co">#&gt; [1] 0.5274032</span>
+<span class="kw">powfn</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> r<span class="op">*</span>lambda), <span class="dt">k1=</span><span class="dv">0</span>, <span class="dt">k2=</span>tau, 
+      <span class="dt">tau =</span> tau, <span class="dt">n =</span> n, <span class="dt">alpha=</span>alpha)
+<span class="co">#&gt; [1] 0.5274032</span>
+
+n&lt;-<span class="dv">200</span>; lambda&lt;-<span class="fl">0.07</span>; r&lt;-<span class="fl">0.5</span>; tau &lt;-<span class="dv">10</span>; alpha =<span class="st"> </span><span class="fl">0.05</span>
+p&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda)<span class="op">$</span><span class="kw">S</span>(tau)
+mu_num&lt;-(<span class="dv">1</span><span class="op">-</span>p<span class="op">^</span>r)<span class="op">/</span>r<span class="op">-</span>(<span class="dv">1</span><span class="op">-</span>p)
+mu_denom&lt;-(n<span class="op">/</span><span class="dv">2</span>)<span class="op">^</span>(<span class="op">-</span><span class="dv">1</span><span class="op">/</span><span class="dv">2</span>)<span class="op">*</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(r<span class="op">^-</span><span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>p<span class="op">^</span>r<span class="op">*</span>(p<span class="op">^</span>r<span class="op">+</span><span class="dv">2</span><span class="op">*</span>r<span class="op">*-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(p)))<span class="op">+</span>(<span class="dv">1</span><span class="op">-</span>p<span class="op">*</span>(p<span class="op">+</span><span class="dv">2</span><span class="op">*-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(p))))
+<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">pnorm</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(<span class="dv">1</span><span class="op">-</span>alpha)<span class="op">-</span>mu_num<span class="op">/</span>mu_denom)
+<span class="co">#&gt; [1] 0.870935</span>
+<span class="kw">powfn</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> r<span class="op">*</span>lambda), <span class="dt">k1=</span><span class="dv">0</span>, <span class="dt">k2=</span>tau, 
+      <span class="dt">tau =</span> tau, <span class="dt">n =</span> n, <span class="dt">alpha=</span>alpha)
+<span class="co">#&gt; [1] 0.870935</span></code></pre></div>
 </div>
-<div id="the-rmsteval-function" class="section level2">
+<div id="validating-the-rmsteval-function" class="section level2">
 <h2 class="hasAnchor">
-<a href="#the-rmsteval-function" class="anchor"></a>The RMSTeval function</h2>
+<a href="#validating-the-rmsteval-function" class="anchor"></a>Validating the RMSTeval function</h2>
+<p>The <code>RMSTeval</code> function calculates the probability the difference in the restricted mean survival time at time <span class="math inline">\(\tau\)</span> will be estimable using the Kaplan-Meier estimator, equation 4 in our paper. Consider a very simple situation where survival in each group is eqaul to 1 until time <span class="math inline">\(\tau\)</span> and <span class="math inline">\(\tau&lt;k_1\)</span>. Then we get the probability <span class="math inline">\(p_{KME}\)</span> is estimable in each group is eqaul to <span class="math display">\[ 1-\int_0^\tau \left(\frac{x}{k_1}\right)^{n-1}\frac{1}{k_1}dx=1-\left(\frac{\tau}{k_1}\right)^n\]</span> In the two-sample setting, the number of people in each group is n/2. The probability that we can estimate the RMST in both groups with the Kaplan-Meier estimator in both groups is the product of the probability we can estimate it in each group: <span class="math display">\[\left[1-\left(\frac{\tau}{k_1}\right)^{n/2}\right]^2\]</span></p>
+<p>Below, the probability we can use the Kaplan-Meier estimator to estimate the RMST difference at the end of the trial (calculated with <code>RMSTeval</code>) is compared to the probability calculcated according to the formula above for several combinations of design parameters:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">k1=<span class="dv">10</span>;tau =<span class="st"> </span><span class="fl">9.9</span>; n=<span class="dv">500</span>
+<span class="kw">RMSTeval</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>),<span class="dt">k1 =</span> k1, <span class="dt">k2 =</span> <span class="dv">0</span>, <span class="dt">tau =</span> tau, <span class="dt">n=</span>n)
+<span class="co">#&gt; [1] 0.8444535</span>
+(<span class="dv">1</span><span class="op">-</span>(tau<span class="op">/</span>k1)<span class="op">^</span>(n<span class="op">/</span><span class="dv">2</span>))<span class="op">^</span><span class="dv">2</span>
+<span class="co">#&gt; [1] 0.8444535</span>
+
+k1=<span class="dv">10</span>;tau =<span class="st"> </span><span class="fl">9.9</span>; n=<span class="dv">200</span>
+<span class="kw">RMSTeval</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>),<span class="dt">k1 =</span> k1, <span class="dt">k2 =</span> <span class="dv">0</span>, <span class="dt">tau =</span> tau, <span class="dt">n=</span>n)
+<span class="co">#&gt; [1] 0.401915</span>
+(<span class="dv">1</span><span class="op">-</span>(tau<span class="op">/</span>k1)<span class="op">^</span>(n<span class="op">/</span><span class="dv">2</span>))<span class="op">^</span><span class="dv">2</span>
+<span class="co">#&gt; [1] 0.401915</span>
+
+k1=<span class="dv">12</span>; tau =<span class="st"> </span><span class="fl">9.9</span>; n=<span class="dv">500</span>
+<span class="kw">RMSTeval</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>),<span class="dt">k1 =</span> k1, <span class="dt">k2 =</span> <span class="dv">0</span>, <span class="dt">tau =</span> tau, <span class="dt">n=</span>n)
+<span class="co">#&gt; [1] 1</span>
+(<span class="dv">1</span><span class="op">-</span>(tau<span class="op">/</span>k1)<span class="op">^</span>(n<span class="op">/</span><span class="dv">2</span>))<span class="op">^</span><span class="dv">2</span>
+<span class="co">#&gt; [1] 1</span>
+
+k1=<span class="dv">10</span>; tau =<span class="st"> </span><span class="fl">9.8</span>; n=<span class="dv">500</span>
+<span class="kw">RMSTeval</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>),<span class="dt">k1 =</span> k1, <span class="dt">k2 =</span> <span class="dv">0</span>, <span class="dt">tau =</span> tau, <span class="dt">n=</span>n)
+<span class="co">#&gt; [1] 0.9872304</span>
+(<span class="dv">1</span><span class="op">-</span>(tau<span class="op">/</span>k1)<span class="op">^</span>(n<span class="op">/</span><span class="dv">2</span>))<span class="op">^</span><span class="dv">2</span>
+<span class="co">#&gt; [1] 0.987231</span>
+
+k1=<span class="dv">10</span>; tau =<span class="st"> </span><span class="dv">10</span>; n=<span class="dv">500</span>
+<span class="kw">RMSTeval</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>),<span class="dt">k1 =</span> k1, <span class="dt">k2 =</span> <span class="dv">0</span>, <span class="dt">tau =</span> tau, <span class="dt">n=</span>n)
+<span class="co">#&gt; [1] 4.930381e-28</span>
+(<span class="dv">1</span><span class="op">-</span>(tau<span class="op">/</span>k1)<span class="op">^</span>(n<span class="op">/</span><span class="dv">2</span>))<span class="op">^</span><span class="dv">2</span>
+<span class="co">#&gt; [1] 0</span></code></pre></div>
 </div>
-<div id="simulation-studies-weibull-scenarios" class="section level2">
+<div id="simulation-notes" class="section level2">
 <h2 class="hasAnchor">
-<a href="#simulation-studies-weibull-scenarios" class="anchor"></a>Simulation studies: Weibull scenarios</h2>
-<p>SSRMST</p>
+<a href="#simulation-notes" class="anchor"></a>Simulation notes</h2>
+<p>We do not use our own function <code>RMSTpow</code> with <code>sim=T</code> to do the simulations below; rather we use <code>rpwe</code> from the <code>PWEALL</code> package and <code>rweibull</code> to generate the simulated data for piecewise expoenential and Weibull distributions, respectively. We use <code><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary(survfit())</a></code> with the <code>rmean</code> option to calculate the RMST difference estimate and its estimated variance. Then, we calculate the Z statistic and compare it to a standard normal distribution to reject or fail to reject the null hypothesis.</p>
 </div>
-<div id="simulation-studies-piecewise-exponential-distributions" class="section level2">
+<div id="simulations-for-scenario-4-but-varying-the-hazard-rate-and-hazard-ratio" class="section level2">
 <h2 class="hasAnchor">
-<a href="#simulation-studies-piecewise-exponential-distributions" class="anchor"></a>Simulation studies: Piecewise exponential distributions</h2>
+<a href="#simulations-for-scenario-4-but-varying-the-hazard-rate-and-hazard-ratio" class="anchor"></a>Simulations for scenario 4, but varying the hazard rate and hazard ratio</h2>
+<p>The plots in Figure S9, Scenario 4 show the asymptotic power across a range of control group hazard rates and hazard ratios, including the scenarios used below. In the original Scenario 4, the hazard rate was about 0.07 and the hazard ratio was 0.67 for the first 15 months, then 1.2. Below, we will consider 4 values of the hazard rate and 4 values of the hazard ratio over the first 15 months. The hazard ratio after 15 months will remain 1.2. Empirical quantities will be calculated using 1000 simulations.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">hrate&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(.<span class="dv">05</span>, .<span class="dv">1</span>, .<span class="dv">15</span>, .<span class="dv">2</span>, .<span class="dv">07</span>, .<span class="dv">07</span>, .<span class="dv">07</span>, .<span class="dv">07</span>)
+hratio&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(.<span class="dv">67</span>, .<span class="dv">67</span>, .<span class="dv">67</span>, .<span class="dv">67</span>, .<span class="dv">25</span>, .<span class="dv">5</span>, .<span class="dv">75</span>, <span class="dv">1</span>)
+k1&lt;-<span class="dv">24</span>
+k2&lt;-<span class="dv">36</span>
+tau&lt;-<span class="dv">48</span>
+n&lt;-<span class="dv">780</span>
+alpha =<span class="st"> </span><span class="fl">0.05</span>
+M&lt;-<span class="dv">1000</span>
+restable&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/as.data.frame">as.data.frame</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="dt">ncol=</span><span class="dv">8</span>, <span class="dt">nrow =</span> <span class="dv">8</span>))
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(restable)&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">'Haz rate'</span>,<span class="st">'HR'</span>,
+                      <span class="st">'Asympt RMST power sup'</span>,<span class="st">'Asympt RMST power inf'</span>,<span class="st">'Asymp pKME'</span>,
+                      <span class="st">'Emp RMST power sup'</span>,<span class="st">'Emp RMST power inf'</span>,<span class="st">'Emp pKME'</span>)
+restable[,<span class="dv">1</span>]&lt;-hrate
+restable[,<span class="dv">2</span>]&lt;-hratio
+
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">8</span>){
+    scen1&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> hrate[i])
+    scen4T&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(hratio[i], <span class="fl">1.2</span>)<span class="op">*</span>hrate[i], <span class="dt">times =</span> <span class="dv">15</span>)
+    res&lt;-<span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(scen1, scen4T, k1, k2, tau, <span class="dt">n =</span> n, <span class="dt">two.sided =</span> T)
+    restable[i,<span class="dv">3</span>]&lt;-res<span class="op">$</span>powerRMSTToverC
+    restable[i,<span class="dv">4</span>]&lt;-res<span class="op">$</span>powerRMSTCoverT
+    restable[i,<span class="dv">5</span>]&lt;-res<span class="op">$</span>pKME
+    simres&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="dt">nrow =</span> M, <span class="dt">ncol =</span> <span class="dv">3</span>)
+    <span class="cf">for</span> (m <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>M){
+        grp&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">'c'</span>, n<span class="op">/</span><span class="dv">2</span>), <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">'t'</span>, n<span class="op">/</span><span class="dv">2</span>))
+        enrol&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Uniform">runif</a></span>(n, <span class="dt">min=</span><span class="dv">0</span>, <span class="dt">max =</span> k1)
+        con&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">rexp</a></span>(n<span class="op">/</span><span class="dv">2</span>, <span class="dt">rate =</span> hrate[i])
+        trt&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/PWEALL/topics/rpwe">rpwe</a></span>(n<span class="op">/</span><span class="dv">2</span>, <span class="dt">rate =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(hratio[i]<span class="op">*</span>hrate[i], <span class="fl">1.2</span><span class="op">*</span>hrate[i]), <span class="dt">tchange =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">0</span>,<span class="dv">15</span>))<span class="op">$</span>r
+        event&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(con, trt)<span class="op">+</span>enrol<span class="op">&lt;</span><span class="st"> </span>k1<span class="op">+</span>k2
+        time&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Extremes">pmin</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(con, trt),  k1<span class="op">+</span>k2<span class="op">-</span>enrol)
+        surv_res&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/survival/topics/survfit">survfit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/survival/topics/Surv">Surv</a></span>(time, event)<span class="op">~</span>grp, <span class="dt">timefix =</span> F)
+        c.time&lt;-surv_res<span class="op">$</span>time[<span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">1</span>]]
+        c.cens&lt;-surv_res<span class="op">$</span>n.censor[<span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">1</span>]]
+        t.time&lt;-surv_res<span class="op">$</span>time[surv_res<span class="op">$</span>strata[<span class="dv">1</span>]<span class="op">+</span><span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">2</span>]]
+        t.cens&lt;-surv_res<span class="op">$</span>n.censor[surv_res<span class="op">$</span>strata[<span class="dv">1</span>]<span class="op">+</span><span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">2</span>]]
+        
+        simres[m,<span class="dv">3</span>]&lt;-T <span class="co"># is RMST difference estimable at time tau?</span>
+        <span class="cf">if</span> (c.cens[<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(c.cens)]<span class="op">&gt;</span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>tau <span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Extremes">max</a></span>(c.time)) simres[m,<span class="dv">3</span>]&lt;-F
+        <span class="cf">if</span> (t.cens[<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(c.cens)]<span class="op">&gt;</span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>tau <span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Extremes">max</a></span>(t.time)) simres[m,<span class="dv">3</span>]&lt;-F
+        summ&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(surv_res, <span class="dt">rmean =</span> tau)<span class="op">$</span>table
+        RMST_diff&lt;-summ[<span class="dv">2</span>,<span class="dv">5</span>]<span class="op">-</span>summ[<span class="dv">1</span>,<span class="dv">5</span>]
+        simres[m,<span class="dv">1</span>]&lt;-RMST_diff<span class="op">/</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(summ[<span class="dv">2</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>summ[<span class="dv">1</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span>))<span class="op">&gt;</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(<span class="dv">1</span><span class="op">-</span>alpha<span class="op">/</span><span class="dv">2</span>)
+        simres[m,<span class="dv">2</span>]&lt;-(RMST_diff)<span class="op">/</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(summ[<span class="dv">2</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>summ[<span class="dv">1</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span>))<span class="op">&lt;</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(alpha<span class="op">/</span><span class="dv">2</span>)
+    }
+    restable[i,<span class="dv">6</span>]&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/mean">mean</a></span>(simres[,<span class="dv">1</span>])
+    restable[i,<span class="dv">7</span>]&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/mean">mean</a></span>(simres[,<span class="dv">2</span>])
+    restable[i,<span class="dv">8</span>]&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/mean">mean</a></span>(simres[,<span class="dv">3</span>])
+}</code></pre></div>
+<p>In the table below, Asmypt indicates asymptotic (calculated using our package) and Emp indicates empirical (calculated based on 1000 simulations). Sup indicates the power to conclude treatment is superior to control and Inf indicates the power to conclude that control is superior to treatment. We see that the asymptotic quantities are close to their asymptotic counterparts.</p>
+<table class="table">
+<thead><tr class="header">
+<th align="right">Haz rate</th>
+<th align="right">HR</th>
+<th align="right">Asympt RMST power sup</th>
+<th align="right">Asympt RMST power inf</th>
+<th align="right">Asymp pKME</th>
+<th align="right">Emp RMST power sup</th>
+<th align="right">Emp RMST power inf</th>
+<th align="right">Emp pKME</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.05</td>
+<td align="right">0.67</td>
+<td align="right">0.5951556</td>
+<td align="right">0.0000159</td>
+<td align="right">1.0000000</td>
+<td align="right">0.619</td>
+<td align="right">0.000</td>
+<td align="right">1.000</td>
+</tr>
+<tr class="even">
+<td align="right">0.10</td>
+<td align="right">0.67</td>
+<td align="right">0.9515384</td>
+<td align="right">0.0000000</td>
+<td align="right">0.8313636</td>
+<td align="right">0.943</td>
+<td align="right">0.000</td>
+<td align="right">0.836</td>
+</tr>
+<tr class="odd">
+<td align="right">0.15</td>
+<td align="right">0.67</td>
+<td align="right">0.9948517</td>
+<td align="right">0.0000000</td>
+<td align="right">0.6724393</td>
+<td align="right">0.996</td>
+<td align="right">0.000</td>
+<td align="right">0.657</td>
+</tr>
+<tr class="even">
+<td align="right">0.20</td>
+<td align="right">0.67</td>
+<td align="right">0.9988493</td>
+<td align="right">0.0000000</td>
+<td align="right">0.9069730</td>
+<td align="right">1.000</td>
+<td align="right">0.000</td>
+<td align="right">0.908</td>
+</tr>
+<tr class="odd">
+<td align="right">0.07</td>
+<td align="right">0.25</td>
+<td align="right">1.0000000</td>
+<td align="right">0.0000000</td>
+<td align="right">0.9993958</td>
+<td align="right">1.000</td>
+<td align="right">0.000</td>
+<td align="right">0.999</td>
+</tr>
+<tr class="even">
+<td align="right">0.07</td>
+<td align="right">0.50</td>
+<td align="right">0.9989543</td>
+<td align="right">0.0000000</td>
+<td align="right">0.9990999</td>
+<td align="right">1.000</td>
+<td align="right">0.000</td>
+<td align="right">0.998</td>
+</tr>
+<tr class="odd">
+<td align="right">0.07</td>
+<td align="right">0.75</td>
+<td align="right">0.4724670</td>
+<td align="right">0.0000589</td>
+<td align="right">0.9976390</td>
+<td align="right">0.489</td>
+<td align="right">0.000</td>
+<td align="right">0.998</td>
+</tr>
+<tr class="even">
+<td align="right">0.07</td>
+<td align="right">1.00</td>
+<td align="right">0.0040032</td>
+<td align="right">0.1023768</td>
+<td align="right">0.9929321</td>
+<td align="right">0.007</td>
+<td align="right">0.089</td>
+<td align="right">0.996</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="simulation-for-crossing-survival-curves-treatment-group-is-favored-initially" class="section level2">
+<h2 class="hasAnchor">
+<a href="#simulation-for-crossing-survival-curves-treatment-group-is-favored-initially" class="anchor"></a>Simulation for crossing survival curves, treatment group is favored initially</h2>
+<p>The scenario here is as in Figure S6 with the curves crossing at 20 months. We will consider various values of k1, k2 and tau</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">scenC&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">surv =</span> .<span class="dv">5</span>, <span class="dt">times =</span> <span class="dv">10</span>)
+<span class="co"># Want to find b such that scen1C$S(t) = exp(-(t/b)^a)</span>
+<span class="co"># This will give the webull surve with shape = a that crosses scen1C at time = t</span>
+a&lt;-<span class="st"> </span><span class="fl">1.5</span><span class="co"># shape param</span>
+t&lt;-<span class="dv">20</span>
+b&lt;-<span class="st"> </span>t<span class="op">/</span>(<span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(scenC<span class="op">$</span><span class="kw">S</span>(t)))<span class="op">^</span>(<span class="dv">1</span><span class="op">/</span>a)
+scenT&lt;-<span class="kw"><a href="../reference/survdefWeibull.html">survdefWeibull</a></span>(<span class="dt">shape =</span> a, <span class="dt">scale =</span> b)
+<span class="kw"><a href="../reference/plotsurvdef.html">plotsurvdef</a></span>(scenC, scenT, <span class="dt">xupper =</span> <span class="dv">60</span>)</code></pre></div>
+<p><img src="RMSTdesign-package-validation_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">k1vec&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">12</span>,<span class="dv">36</span>,<span class="dv">24</span>,<span class="dv">24</span>,<span class="dv">24</span>,<span class="dv">24</span>)
+k2vec&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">36</span>,<span class="dv">36</span>,<span class="dv">12</span>,<span class="dv">24</span>,<span class="dv">36</span>,<span class="dv">36</span>)
+tauvec&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">36</span>,<span class="dv">36</span>,<span class="dv">36</span>,<span class="dv">36</span>,<span class="dv">24</span>,<span class="dv">48</span>)
+
+n&lt;-<span class="dv">780</span>
+alpha =<span class="st"> </span><span class="fl">0.05</span>
+M&lt;-<span class="dv">1000</span>
+restable&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/as.data.frame">as.data.frame</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="dt">ncol=</span><span class="dv">9</span>, <span class="dt">nrow =</span> <span class="dv">6</span>))
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(restable)&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">'k1'</span>,<span class="st">'k2'</span>,<span class="st">'tau'</span>,
+                      <span class="st">'Asympt RMST power sup'</span>,<span class="st">'Asympt RMST power inf'</span>,<span class="st">'Asymp pKME'</span>,
+                      <span class="st">'Emp RMST power sup'</span>,<span class="st">'Emp RMST power inf'</span>,<span class="st">'Emp pKME'</span>)
+restable[,<span class="dv">1</span>]&lt;-k1vec
+restable[,<span class="dv">2</span>]&lt;-k2vec
+restable[,<span class="dv">3</span>]&lt;-tauvec
+
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">6</span>){
+    res&lt;-<span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(scenC, scenT, k1vec[i], k2vec[i], tauvec[i], <span class="dt">n =</span> n, <span class="dt">two.sided =</span> T)
+    restable[i,<span class="dv">4</span>]&lt;-res<span class="op">$</span>powerRMSTToverC
+    restable[i,<span class="dv">5</span>]&lt;-res<span class="op">$</span>powerRMSTCoverT
+    restable[i,<span class="dv">6</span>]&lt;-res<span class="op">$</span>pKME
+    simres&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="dt">nrow =</span> M, <span class="dt">ncol =</span> <span class="dv">3</span>)
+    <span class="cf">for</span> (m <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>M){
+        grp&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">'c'</span>, n<span class="op">/</span><span class="dv">2</span>), <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">'t'</span>, n<span class="op">/</span><span class="dv">2</span>))
+        enrol&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Uniform">runif</a></span>(n, <span class="dt">min=</span><span class="dv">0</span>, <span class="dt">max =</span> k1vec[i])
+        con&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">rexp</a></span>(n<span class="op">/</span><span class="dv">2</span>, <span class="dt">rate =</span> <span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(.<span class="dv">5</span>)<span class="op">/</span><span class="dv">10</span>)
+        trt&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Weibull">rweibull</a></span>(n<span class="op">/</span><span class="dv">2</span>, <span class="dt">shape=</span>a, <span class="dt">scale =</span> b)
+        event&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(con, trt)<span class="op">+</span>enrol<span class="op">&lt;</span><span class="st"> </span>k1vec[i]<span class="op">+</span>k2vec[i]
+        time&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Extremes">pmin</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(con, trt),  k1vec[i]<span class="op">+</span>k2vec[i]<span class="op">-</span>enrol)
+        surv_res&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/survival/topics/survfit">survfit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/survival/topics/Surv">Surv</a></span>(time, event)<span class="op">~</span>grp, <span class="dt">timefix =</span> F)
+        c.time&lt;-surv_res<span class="op">$</span>time[<span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">1</span>]]
+        c.cens&lt;-surv_res<span class="op">$</span>n.censor[<span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">1</span>]]
+        t.time&lt;-surv_res<span class="op">$</span>time[surv_res<span class="op">$</span>strata[<span class="dv">1</span>]<span class="op">+</span><span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">2</span>]]
+        t.cens&lt;-surv_res<span class="op">$</span>n.censor[surv_res<span class="op">$</span>strata[<span class="dv">1</span>]<span class="op">+</span><span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">2</span>]]
+        
+        simres[m,<span class="dv">3</span>]&lt;-T <span class="co"># is RMST difference estimable at time tau?</span>
+        <span class="cf">if</span> (c.cens[<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(c.cens)]<span class="op">&gt;</span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>tauvec[i] <span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Extremes">max</a></span>(c.time)) simres[m,<span class="dv">3</span>]&lt;-F
+        <span class="cf">if</span> (t.cens[<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(c.cens)]<span class="op">&gt;</span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>tauvec[i] <span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Extremes">max</a></span>(t.time)) simres[m,<span class="dv">3</span>]&lt;-F
+        summ&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(surv_res, <span class="dt">rmean =</span> tauvec[i])<span class="op">$</span>table
+        RMST_diff&lt;-summ[<span class="dv">2</span>,<span class="dv">5</span>]<span class="op">-</span>summ[<span class="dv">1</span>,<span class="dv">5</span>]
+        simres[m,<span class="dv">1</span>]&lt;-RMST_diff<span class="op">/</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(summ[<span class="dv">2</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>summ[<span class="dv">1</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span>))<span class="op">&gt;</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(<span class="dv">1</span><span class="op">-</span>alpha<span class="op">/</span><span class="dv">2</span>)
+        simres[m,<span class="dv">2</span>]&lt;-(RMST_diff)<span class="op">/</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(summ[<span class="dv">2</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>summ[<span class="dv">1</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span>))<span class="op">&lt;</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(alpha<span class="op">/</span><span class="dv">2</span>)
+    }
+    restable[i,<span class="dv">7</span>]&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/mean">mean</a></span>(simres[,<span class="dv">1</span>])
+    restable[i,<span class="dv">8</span>]&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/mean">mean</a></span>(simres[,<span class="dv">2</span>])
+    restable[i,<span class="dv">9</span>]&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/mean">mean</a></span>(simres[,<span class="dv">3</span>])
+}</code></pre></div>
+<p>In the table below, Asmypt indicates asymptotic (calculated using our package) and Emp indicates empirical (calculated based on 1000 simulations). Sup indicates the power to conclude treatment is superior to control and Inf indicates the power to conclude that control is superior to treatment. We see that the asymptotic quantities are close to their asymptotic counterparts.</p>
+<table class="table">
+<thead><tr class="header">
+<th align="right">k1</th>
+<th align="right">k2</th>
+<th align="right">tau</th>
+<th align="right">Asympt RMST power sup</th>
+<th align="right">Asympt RMST power inf</th>
+<th align="right">Asymp pKME</th>
+<th align="right">Emp RMST power sup</th>
+<th align="right">Emp RMST power inf</th>
+<th align="right">Emp pKME</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">12</td>
+<td align="right">36</td>
+<td align="right">36</td>
+<td align="right">0.3048140</td>
+<td align="right">0.0003256</td>
+<td align="right">1.0000000</td>
+<td align="right">0.325</td>
+<td align="right">0.000</td>
+<td align="right">1.000</td>
+</tr>
+<tr class="even">
+<td align="right">36</td>
+<td align="right">36</td>
+<td align="right">36</td>
+<td align="right">0.3048140</td>
+<td align="right">0.0003256</td>
+<td align="right">1.0000000</td>
+<td align="right">0.279</td>
+<td align="right">0.000</td>
+<td align="right">1.000</td>
+</tr>
+<tr class="odd">
+<td align="right">24</td>
+<td align="right">12</td>
+<td align="right">36</td>
+<td align="right">0.2759989</td>
+<td align="right">0.0004418</td>
+<td align="right">0.0060073</td>
+<td align="right">0.264</td>
+<td align="right">0.000</td>
+<td align="right">0.007</td>
+</tr>
+<tr class="even">
+<td align="right">24</td>
+<td align="right">24</td>
+<td align="right">36</td>
+<td align="right">0.3036115</td>
+<td align="right">0.0003297</td>
+<td align="right">0.9996383</td>
+<td align="right">0.316</td>
+<td align="right">0.001</td>
+<td align="right">1.000</td>
+</tr>
+<tr class="odd">
+<td align="right">24</td>
+<td align="right">36</td>
+<td align="right">24</td>
+<td align="right">0.7990805</td>
+<td align="right">0.0000010</td>
+<td align="right">1.0000000</td>
+<td align="right">0.801</td>
+<td align="right">0.000</td>
+<td align="right">1.000</td>
+</tr>
+<tr class="even">
+<td align="right">24</td>
+<td align="right">36</td>
+<td align="right">48</td>
+<td align="right">0.1072584</td>
+<td align="right">0.0036956</td>
+<td align="right">0.8995271</td>
+<td align="right">0.144</td>
+<td align="right">0.006</td>
+<td align="right">0.905</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="simulation-for-crossing-survival-curves-control-group-is-favored-intially" class="section level2">
+<h2 class="hasAnchor">
+<a href="#simulation-for-crossing-survival-curves-control-group-is-favored-intially" class="anchor"></a>Simulation for crossing survival curves, control group is favored intially</h2>
+<p>The scenario here is as in Figure S7 with the curves crossing at 20 months. We will consider various values of k1, k2 and tau</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">scenC&lt;-<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">surv =</span> .<span class="dv">5</span>, <span class="dt">times =</span> <span class="dv">10</span>)
+<span class="co"># Want to find b such that scen1C$S(t) = exp(-(t/b)^a)</span>
+<span class="co"># This will give the webull surve with shape = a that crosses scen1C at time = t</span>
+a&lt;-<span class="st"> </span>.<span class="dv">67</span><span class="co"># shape param</span>
+t&lt;-<span class="dv">20</span>
+b&lt;-<span class="st"> </span>t<span class="op">/</span>(<span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(scenC<span class="op">$</span><span class="kw">S</span>(t)))<span class="op">^</span>(<span class="dv">1</span><span class="op">/</span>a)
+scenT&lt;-<span class="kw"><a href="../reference/survdefWeibull.html">survdefWeibull</a></span>(<span class="dt">shape =</span> a, <span class="dt">scale =</span> b)
+<span class="kw"><a href="../reference/plotsurvdef.html">plotsurvdef</a></span>(scenC, scenT, <span class="dt">xupper =</span> <span class="dv">60</span>)</code></pre></div>
+<p><img src="RMSTdesign-package-validation_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">k1vec&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">12</span>,<span class="dv">36</span>,<span class="dv">24</span>,<span class="dv">24</span>,<span class="dv">24</span>,<span class="dv">24</span>)
+k2vec&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">36</span>,<span class="dv">36</span>,<span class="dv">12</span>,<span class="dv">24</span>,<span class="dv">36</span>,<span class="dv">36</span>)
+tauvec&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">36</span>,<span class="dv">36</span>,<span class="dv">36</span>,<span class="dv">36</span>,<span class="dv">24</span>,<span class="dv">48</span>)
+
+n&lt;-<span class="dv">780</span>
+alpha =<span class="st"> </span><span class="fl">0.05</span>
+M&lt;-<span class="dv">1000</span>
+restable&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/as.data.frame">as.data.frame</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="dt">ncol=</span><span class="dv">9</span>, <span class="dt">nrow =</span> <span class="dv">6</span>))
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/colnames">colnames</a></span>(restable)&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">'k1'</span>,<span class="st">'k2'</span>,<span class="st">'tau'</span>,
+                      <span class="st">'Asympt RMST power sup'</span>,<span class="st">'Asympt RMST power inf'</span>,<span class="st">'Asymp pKME'</span>,
+                      <span class="st">'Emp RMST power sup'</span>,<span class="st">'Emp RMST power inf'</span>,<span class="st">'Emp pKME'</span>)
+restable[,<span class="dv">1</span>]&lt;-k1vec
+restable[,<span class="dv">2</span>]&lt;-k2vec
+restable[,<span class="dv">3</span>]&lt;-tauvec
+
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">6</span>){
+    res&lt;-<span class="kw"><a href="../reference/RMSTpow.html">RMSTpow</a></span>(scenC, scenT, k1vec[i], k2vec[i], tauvec[i], <span class="dt">n =</span> n, <span class="dt">two.sided =</span> T)
+    restable[i,<span class="dv">4</span>]&lt;-res<span class="op">$</span>powerRMSTToverC
+    restable[i,<span class="dv">5</span>]&lt;-res<span class="op">$</span>powerRMSTCoverT
+    restable[i,<span class="dv">6</span>]&lt;-res<span class="op">$</span>pKME
+    simres&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="dt">nrow =</span> M, <span class="dt">ncol =</span> <span class="dv">3</span>)
+    <span class="cf">for</span> (m <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>M){
+        grp&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">'c'</span>, n<span class="op">/</span><span class="dv">2</span>), <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="st">'t'</span>, n<span class="op">/</span><span class="dv">2</span>))
+        enrol&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Uniform">runif</a></span>(n, <span class="dt">min=</span><span class="dv">0</span>, <span class="dt">max =</span> k1vec[i])
+        con&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Exponential">rexp</a></span>(n<span class="op">/</span><span class="dv">2</span>, <span class="dt">rate =</span> <span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(.<span class="dv">5</span>)<span class="op">/</span><span class="dv">10</span>)
+        trt&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Weibull">rweibull</a></span>(n<span class="op">/</span><span class="dv">2</span>, <span class="dt">shape=</span>a, <span class="dt">scale =</span> b)
+        event&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(con, trt)<span class="op">+</span>enrol<span class="op">&lt;</span><span class="st"> </span>k1vec[i]<span class="op">+</span>k2vec[i]
+        time&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Extremes">pmin</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(con, trt),  k1vec[i]<span class="op">+</span>k2vec[i]<span class="op">-</span>enrol)
+        surv_res&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/survival/topics/survfit">survfit</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/survival/topics/Surv">Surv</a></span>(time, event)<span class="op">~</span>grp, <span class="dt">timefix =</span> F)
+        c.time&lt;-surv_res<span class="op">$</span>time[<span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">1</span>]]
+        c.cens&lt;-surv_res<span class="op">$</span>n.censor[<span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">1</span>]]
+        t.time&lt;-surv_res<span class="op">$</span>time[surv_res<span class="op">$</span>strata[<span class="dv">1</span>]<span class="op">+</span><span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">2</span>]]
+        t.cens&lt;-surv_res<span class="op">$</span>n.censor[surv_res<span class="op">$</span>strata[<span class="dv">1</span>]<span class="op">+</span><span class="dv">1</span><span class="op">:</span>surv_res<span class="op">$</span>strata[<span class="dv">2</span>]]
+        
+        simres[m,<span class="dv">3</span>]&lt;-T <span class="co"># is RMST difference estimable at time tau?</span>
+        <span class="cf">if</span> (c.cens[<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(c.cens)]<span class="op">&gt;</span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>tauvec[i] <span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Extremes">max</a></span>(c.time)) simres[m,<span class="dv">3</span>]&lt;-F
+        <span class="cf">if</span> (t.cens[<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/length">length</a></span>(c.cens)]<span class="op">&gt;</span><span class="dv">0</span> <span class="op">&amp;</span><span class="st"> </span>tauvec[i] <span class="op">&gt;</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Extremes">max</a></span>(t.time)) simres[m,<span class="dv">3</span>]&lt;-F
+        summ&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(surv_res, <span class="dt">rmean =</span> tauvec[i])<span class="op">$</span>table
+        RMST_diff&lt;-summ[<span class="dv">2</span>,<span class="dv">5</span>]<span class="op">-</span>summ[<span class="dv">1</span>,<span class="dv">5</span>]
+        simres[m,<span class="dv">1</span>]&lt;-RMST_diff<span class="op">/</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(summ[<span class="dv">2</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>summ[<span class="dv">1</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span>))<span class="op">&gt;</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(<span class="dv">1</span><span class="op">-</span>alpha<span class="op">/</span><span class="dv">2</span>)
+        simres[m,<span class="dv">2</span>]&lt;-(RMST_diff)<span class="op">/</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/MathFun">sqrt</a></span>(summ[<span class="dv">2</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span>summ[<span class="dv">1</span>,<span class="dv">6</span>]<span class="op">^</span><span class="dv">2</span>))<span class="op">&lt;</span><span class="kw"><a href="https://www.rdocumentation.org/packages/stats/topics/Normal">qnorm</a></span>(alpha<span class="op">/</span><span class="dv">2</span>)
+    }
+    restable[i,<span class="dv">7</span>]&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/mean">mean</a></span>(simres[,<span class="dv">1</span>])
+    restable[i,<span class="dv">8</span>]&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/mean">mean</a></span>(simres[,<span class="dv">2</span>])
+    restable[i,<span class="dv">9</span>]&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/mean">mean</a></span>(simres[,<span class="dv">3</span>])
+}</code></pre></div>
+<p>In the table below, Asmypt indicates asymptotic (calculated using our package) and Emp indicates empirical (calculated based on 1000 simulations). Sup indicates the power to conclude treatment is superior to control and Inf indicates the power to conclude that control is superior to treatment. We see that the asymptotic quantities are close to their asymptotic counterparts.</p>
+<table class="table">
+<thead><tr class="header">
+<th align="right">k1</th>
+<th align="right">k2</th>
+<th align="right">tau</th>
+<th align="right">Asympt RMST power sup</th>
+<th align="right">Asympt RMST power inf</th>
+<th align="right">Asymp pKME</th>
+<th align="right">Emp RMST power sup</th>
+<th align="right">Emp RMST power inf</th>
+<th align="right">Emp pKME</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">12</td>
+<td align="right">36</td>
+<td align="right">36</td>
+<td align="right">0.0007582</td>
+<td align="right">0.2271133</td>
+<td align="right">1.0000000</td>
+<td align="right">0.001</td>
+<td align="right">0.234</td>
+<td align="right">1.000</td>
+</tr>
+<tr class="even">
+<td align="right">36</td>
+<td align="right">36</td>
+<td align="right">36</td>
+<td align="right">0.0007582</td>
+<td align="right">0.2271133</td>
+<td align="right">1.0000000</td>
+<td align="right">0.001</td>
+<td align="right">0.260</td>
+<td align="right">1.000</td>
+</tr>
+<tr class="odd">
+<td align="right">24</td>
+<td align="right">12</td>
+<td align="right">36</td>
+<td align="right">0.0009179</td>
+<td align="right">0.2105992</td>
+<td align="right">0.0007515</td>
+<td align="right">0.000</td>
+<td align="right">0.208</td>
+<td align="right">0.002</td>
+</tr>
+<tr class="even">
+<td align="right">24</td>
+<td align="right">24</td>
+<td align="right">36</td>
+<td align="right">0.0007640</td>
+<td align="right">0.2264410</td>
+<td align="right">1.0000000</td>
+<td align="right">0.000</td>
+<td align="right">0.229</td>
+<td align="right">1.000</td>
+</tr>
+<tr class="odd">
+<td align="right">24</td>
+<td align="right">36</td>
+<td align="right">24</td>
+<td align="right">0.0000095</td>
+<td align="right">0.6394962</td>
+<td align="right">1.0000000</td>
+<td align="right">0.000</td>
+<td align="right">0.645</td>
+<td align="right">1.000</td>
+</tr>
+<tr class="even">
+<td align="right">24</td>
+<td align="right">36</td>
+<td align="right">48</td>
+<td align="right">0.0079153</td>
+<td align="right">0.0658889</td>
+<td align="right">0.9995468</td>
+<td align="right">0.005</td>
+<td align="right">0.064</td>
+<td align="right">1.000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="footnotes">
+<hr>
+<ol>
+<li id="fn1"><p>Eaton A, Therneau T and Le-Rademacher J. Designing Clinical Trials with (Restricted) Mean Survival Time Endpoint – Practical Considerations.<a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p><a href="https://cran.r-project.org/web/packages/SSRMST/vignettes/vignette-ssrmst.html" class="uri">https://cran.r-project.org/web/packages/SSRMST/vignettes/vignette-ssrmst.html</a><a href="#fnref2">↩</a></p></li>
+<li id="fn3"><p>Royston P and Parmar MK. Restricted mean survival time: an alternative to the hazard ratio for the design and analysis of randomized trials with a time-to-event outcome. BMC Med Res Methodol 2013; 13: 152.<a href="#fnref3">↩</a></p></li>
+</ol>
 </div>
   </div>
 
@@ -126,11 +670,13 @@
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-<li><a href="#the-evar-function">The evar function</a></li>
-      <li><a href="#the-powfn-function">The powfn function</a></li>
-      <li><a href="#the-rmsteval-function">The RMSTeval function</a></li>
-      <li><a href="#simulation-studies-weibull-scenarios">Simulation studies: Weibull scenarios</a></li>
-      <li><a href="#simulation-studies-piecewise-exponential-distributions">Simulation studies: Piecewise exponential distributions</a></li>
+<li><a href="#validating-the-evar-function">Validating the evar function</a></li>
+      <li><a href="#validating-the-powfn-function">Validating the powfn function</a></li>
+      <li><a href="#validating-the-rmsteval-function">Validating the RMSTeval function</a></li>
+      <li><a href="#simulation-notes">Simulation notes</a></li>
+      <li><a href="#simulations-for-scenario-4-but-varying-the-hazard-rate-and-hazard-ratio">Simulations for scenario 4, but varying the hazard rate and hazard ratio</a></li>
+      <li><a href="#simulation-for-crossing-survival-curves-treatment-group-is-favored-initially">Simulation for crossing survival curves, treatment group is favored initially</a></li>
+      <li><a href="#simulation-for-crossing-survival-curves-control-group-is-favored-intially">Simulation for crossing survival curves, control group is favored intially</a></li>
       </ul>
 </div>
       </div>

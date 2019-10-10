@@ -20,10 +20,12 @@ library(SSRMST)
 library(knitr)
 library(PWEALL)
 library(survival)
-library(pracma)
 ```
 
-This vignette validates the internal functions of the `RMSTdesign` package by comparing the results to by-hand calculations in the simple setting of exponential survival distributions and no censoring before time $\tau$. This vignette also confirms that the asymptotic power and pKME returned by the `RMSTpow` function are close to their empirical conterparts across several scenarios. Along with the results in our paper[^1] (Tables 1 and 3 which show that the power of the RMST-based test and pKME calculated using our package match their empirical counterparts across 4 scenarios, various values of k1, k2, tau and n, and a table in Appendix I which shows that the empirical variance of RMST matches the variance calcuated using our package), the vignette "Compare-to-SSRMST" (which shows that our results match simulation results from the `SSRMST` package[^2] in 4 scenarios), and the vignette "GOG111-Trial", which shows that we get almost the same sample size as the one calculated by Royston and Parmar[^3] (with the difference likely due to different approaches for calculating the restricted mean survival difference and its variance), these results validate that the calculations in the `RMSTdesign` package are correct and that the package can be used for trial design.  
+This vignette validates the internal functions of the `RMSTdesign` package by comparing the results to those obtained by plugging design parameters directly into simple formulas. This vignette also confirms that the asymptotic power and pKME returned by the `RMSTpow` function are close to their empirical conterparts across several scenarios. Along with the results in our paper[^1] (Tables 1 and 3 which show that the power of the RMST-based test and pKME calculated using `RMSTpow` match their empirical counterparts across 4 scenarios, various values of k1, k2, tau and n, and a table in Appendix I which shows that the empirical variance of the RMST estimator matches the variance calculated using the internal function `evar` from `RMSTdesign`), the vignette "Compare-to-SSRMST" (which shows that results from `RMSTdesign` match simulation results from the `SSRMST` package[^2] in 4 scenarios), and the vignette "GOG111-Trial", which shows that `RMSTpow` returns almost the same sample size as the one calculated by Royston and Parmar[^3] (with the difference likely due to different approaches for calculating the restricted mean survival difference and its variance), these results validate that the calculations in the `RMSTdesign` package are correct and that the package can be used for trial design.  
+
+##Approach to validating internal functions
+The internal functions implement equations 1, 3 and 4 from our paper[^1]. We can show that in simple settings, these equations simplify to simple formulas in terms of the design parameters.Below, we have presented the simple formulas, and then shown that the results of the internal functions match the results obtained by plugging in the design parameters, for several combinations of the design parameters. 
 
 ##Validating the evar function 
 The `evar` function calculates the variance of the estimated difference in RMST according to equation 1 in our paper. We will confirm that it gives the correct result in a simple setting. In the setting of an exponential survival distribution and no censoring before time $\tau$, the asymptotic variance of the estimated mean survival time is equal to 
@@ -55,11 +57,15 @@ evar(survdef(haz = lambda), 0, tau, tau, tau, n)
 n<-200; lambda<-0.07; tau <-20
 evar(survdef(haz = lambda), 0, tau, tau, tau, n)
 (1/(n*lambda^2))*(1-exp(-lambda*tau)*(exp(-lambda*tau)+2*lambda*tau))
+
+n<-400; lambda<-0.07; tau <-10
+evar(survdef(haz = lambda), 0, tau, tau, tau, n)
+(1/(n*lambda^2))*(1-exp(-lambda*tau)*(exp(-lambda*tau)+2*lambda*tau))
 ```
 
 ##Validating the powfn function
 The `powfn` function calculates the power of the one-sided test of the difference in RMST according to equation 3 in our paper. We will confirm that it gives the correct result in a simple setting. In the setting of exponential survival distributions in each group and no censoring before time $\tau$, the sampling distribution of the test statistic Z is has a mean of 
-$$\mu=\frac{\frac{1-p^r}{r}-(1-p)}{\frac{1}{\sqrt(n/2)}\sqrt(\frac{1}{r^2}(1-p^r\{p^r+2r\}))}$$
+$$\mu=\frac{\frac{1-p^r}{r}-(1-p)}{\frac{1}{\sqrt(n/2)}\sqrt(\frac{1}{r^2}(1-p^r\{p^r+2r(-\log(p))\})+1-p\{p+2(-\log(p))\})}$$
 
 where $r$ is the pazard ratio and $p$ is the survival probability at time $\tau$ in the control group.
 
@@ -118,9 +124,10 @@ powfn(survdef(haz = lambda), survdef(haz = r*lambda), k1=0, k2=tau,
 ```
 
 ##Validating the RMSTeval function
-The `RMSTeval` function calculates the probability the difference in the restricted mean survival time at time $\tau$ will be estimable using the Kaplan-Meier estimator, equation 4 in our paper. Consider a very simple situation where survival in each group is eqaul to 1 until time $\tau$ and $\tau<k_1$. Then we get the probability $p_{KME}$ is estimable in each group is eqaul to 
-$$ 1-\int_0^\tau \left(\frac{x}{k_1}\right)^{n-1}\frac{1}{k_1}dx=1-\left(\frac{\tau}{k_1}\right)^n$$
-In the two-sample setting, the number of people in each group is n/2. The probability that we can estimate the RMST in both groups with the Kaplan-Meier estimator in both groups is the product of the probability we can estimate it in each group:
+The `RMSTeval` function calculates the probability the difference in the restricted mean survival time at time $\tau$ will be estimable using the Kaplan-Meier estimator, equation 4 in our paper. Consider a very simple situation where survival in each group is equal to 1 until time $\tau$ and $\tau<k_1$. Then we get the probability $p_{KME}$ is estimable in each group is equal to the following, where $g(x)$ is the hazard function for the censoring distribution and $T$ and $C$ are the random death and censoring times: 
+$$p_{KME}=1-n\int_0^\tau \{P(\min(T,C)<x)\}^{n-1}g(x)S(x)dx$$
+$$= 1-n\int_0^\tau \left(\frac{x}{k_1}\right)^{n-1}\frac{1}{k_1}dx=1-\left(\frac{\tau}{k_1}\right)^n$$
+If we let $n$ represent the total sample size, then the sample size in each group is $n/2$ The probability that we can estimate the RMST in both groups with the Kaplan-Meier estimator is the product of the probability we can estimate it in each group:
 $$\left[1-\left(\frac{\tau}{k_1}\right)^{n/2}\right]^2$$
 ```{r, echo=F}
 RMSTeval<-function(survdefC, survdefT, k1, k2, tau, n){
@@ -169,10 +176,10 @@ RMSTeval(survdef(haz = 0), survdef(haz = 0),k1 = k1, k2 = 0, tau = tau, n=n)
 ```
 
 ##Simulation notes
-We do not use our own function `RMSTpow` with `sim=T` to do the simulations below; rather we use `rpwe` from the `PWEALL` package and `rweibull` to generate the simulated data for piecewise expoenential and Weibull distributions, respectively. We use `summary(survfit())` with the `rmean` option to calculate the RMST difference estimate and its estimated variance. Then, we calculate the Z statistic and compare it to a standard normal distribution to reject or fail to reject the null hypothesis. 
+The `RMSTpow` function can do simulations and report empirical power and $p_{KME}$ using th `sim=T` option. However, we thought that it would be better to validate the asymptotic power and $p_{KME}$ calculated using `RMSTpow` by comparing them to empirical quantities calcualted independent of the `RMSTpow` function. The simulation code used to calculate the empirical quantities is shown below. We use `rpwe` from the `PWEALL` package and `rweibull` to generate the simulated data for piecewise expoenential and Weibull distributions, respectively. We use`summary.survfit` from the `survival` packages with the `rmean` option to calculate the RMST difference estimate and the variance estimate. Empirical quantities will be calculated using 1000 simulations. 
 
 ##Simulations for scenario 4, but varying the hazard rate and hazard ratio 
-The plots in Figure S9, Scenario 4 show the asymptotic power across a range of control group hazard rates and hazard ratios, including the scenarios used below. In the original Scenario 4, the hazard rate was about 0.07 and the hazard ratio was 0.67 for the first 15 months, then 1.2. Below, we will consider 4 values of the hazard rate and 4 values of the hazard ratio over the first 15 months. The hazard ratio after 15 months will remain 1.2. Empirical quantities will be calculated using 1000 simulations. 
+The plots in Figure S9, Scenario 4 show the asymptotic power of the RMST-based test across a range of control group hazard rates and hazard ratios, including the specific design parameter combinations used below. In the original Scenario 4, the hazard rate was about 0.07 and the hazard ratio was 0.67 for the first 15 months, then 1.2. Below, we will consider 4 values of the hazard rate and 4 values of the hazard ratio over the first 15 months. The hazard ratio after 15 months will remain 1.2. 
 ```{r}
 hrate<-c(.05, .1, .15, .2, .07, .07, .07, .07)
 hratio<-c(.67, .67, .67, .67, .25, .5, .75, 1)

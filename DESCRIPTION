@@ -27,5 +27,6 @@ RoxygenNote: 6.1.1
 Suggests: 
     knitr,
     rmarkdown,
-    SSRMST
+    SSRMST, 
+    PWEALL 
 VignetteBuilder: knitr

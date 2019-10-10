@@ -100,9 +100,13 @@
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(SSRMST)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(knitr)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(PWEALL)
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(survival)
-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(pracma)</code></pre></div>
-<p>This vignette validates the internal functions of the <code>RMSTdesign</code> package by comparing the results to by-hand calculations in the simple setting of exponential survival distributions and no censoring before time <span class="math inline">\(\tau\)</span>. This vignette also confirms that the asymptotic power and pKME returned by the <code>RMSTpow</code> function are close to their empirical conterparts across several scenarios. Along with the results in our paper<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> (Tables 1 and 3 which show that the power of the RMST-based test and pKME calculated using our package match their empirical counterparts across 4 scenarios, various values of k1, k2, tau and n, and a table in Appendix I which shows that the empirical variance of RMST matches the variance calcuated using our package), the vignette “Compare-to-SSRMST” (which shows that our results match simulation results from the <code>SSRMST</code> package<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> in 4 scenarios), and the vignette “GOG111-Trial”, which shows that we get almost the same sample size as the one calculated by Royston and Parmar<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a> (with the difference likely due to different approaches for calculating the restricted mean survival difference and its variance), these results validate that the calculations in the <code>RMSTdesign</code> package are correct and that the package can be used for trial design.</p>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(survival)</code></pre></div>
+<p>This vignette validates the internal functions of the <code>RMSTdesign</code> package by comparing the results to those obtained by plugging design parameters directly into simple formulas. This vignette also confirms that the asymptotic power and pKME returned by the <code>RMSTpow</code> function are close to their empirical conterparts across several scenarios. Along with the results in our paper<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> (Tables 1 and 3 which show that the power of the RMST-based test and pKME calculated using <code>RMSTpow</code> match their empirical counterparts across 4 scenarios, various values of k1, k2, tau and n, and a table in Appendix I which shows that the empirical variance of the RMST estimator matches the variance calculated using the internal function <code>evar</code> from <code>RMSTdesign</code>), the vignette “Compare-to-SSRMST” (which shows that results from <code>RMSTdesign</code> match simulation results from the <code>SSRMST</code> package<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> in 4 scenarios), and the vignette “GOG111-Trial”, which shows that <code>RMSTpow</code> returns almost the same sample size as the one calculated by Royston and Parmar<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a> (with the difference likely due to different approaches for calculating the restricted mean survival difference and its variance), these results validate that the calculations in the <code>RMSTdesign</code> package are correct and that the package can be used for trial design.</p>
+<div id="approach-to-validating-internal-functions" class="section level2">
+<h2 class="hasAnchor">
+<a href="#approach-to-validating-internal-functions" class="anchor"></a>Approach to validating internal functions</h2>
+<p>The internal functions implement equations 1, 3 and 4 from our paper<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a>. We can show that in simple settings, these equations simplify to simple formulas in terms of the design parameters.Below, we have presented the simple formulas, and then shown that the results of the internal functions match the results obtained by plugging in the design parameters, for several combinations of the design parameters.</p>
+</div>
 <div id="validating-the-evar-function" class="section level2">
 <h2 class="hasAnchor">
 <a href="#validating-the-evar-function" class="anchor"></a>Validating the evar function</h2>
@@ -125,12 +129,18 @@ n&lt;-<span class="dv">200</span>; lambda&lt;-<span class="fl">0.07</span>; tau 
 <span class="kw">evar</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda), <span class="dv">0</span>, tau, tau, tau, n)
 <span class="co">#&gt; [1] 0.2537943</span>
 (<span class="dv">1</span><span class="op">/</span>(n<span class="op">*</span>lambda<span class="op">^</span><span class="dv">2</span>))<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="op">-</span>lambda<span class="op">*</span>tau)<span class="op">*</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="op">-</span>lambda<span class="op">*</span>tau)<span class="op">+</span><span class="dv">2</span><span class="op">*</span>lambda<span class="op">*</span>tau))
-<span class="co">#&gt; [1] 0.2537943</span></code></pre></div>
+<span class="co">#&gt; [1] 0.2537943</span>
+
+n&lt;-<span class="dv">400</span>; lambda&lt;-<span class="fl">0.07</span>; tau &lt;-<span class="dv">10</span>
+<span class="kw">evar</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> lambda), <span class="dv">0</span>, tau, tau, tau, n)
+<span class="co">#&gt; [1] 0.02968552</span>
+(<span class="dv">1</span><span class="op">/</span>(n<span class="op">*</span>lambda<span class="op">^</span><span class="dv">2</span>))<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="op">-</span>lambda<span class="op">*</span>tau)<span class="op">*</span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">exp</a></span>(<span class="op">-</span>lambda<span class="op">*</span>tau)<span class="op">+</span><span class="dv">2</span><span class="op">*</span>lambda<span class="op">*</span>tau))
+<span class="co">#&gt; [1] 0.02968552</span></code></pre></div>
 </div>
 <div id="validating-the-powfn-function" class="section level2">
 <h2 class="hasAnchor">
 <a href="#validating-the-powfn-function" class="anchor"></a>Validating the powfn function</h2>
-<p>The <code>powfn</code> function calculates the power of the one-sided test of the difference in RMST according to equation 3 in our paper. We will confirm that it gives the correct result in a simple setting. In the setting of exponential survival distributions in each group and no censoring before time <span class="math inline">\(\tau\)</span>, the sampling distribution of the test statistic Z is has a mean of <span class="math display">\[\mu=\frac{\frac{1-p^r}{r}-(1-p)}{\frac{1}{\sqrt(n/2)}\sqrt(\frac{1}{r^2}(1-p^r\{p^r+2r\}))}\]</span></p>
+<p>The <code>powfn</code> function calculates the power of the one-sided test of the difference in RMST according to equation 3 in our paper. We will confirm that it gives the correct result in a simple setting. In the setting of exponential survival distributions in each group and no censoring before time <span class="math inline">\(\tau\)</span>, the sampling distribution of the test statistic Z is has a mean of <span class="math display">\[\mu=\frac{\frac{1-p^r}{r}-(1-p)}{\frac{1}{\sqrt(n/2)}\sqrt(\frac{1}{r^2}(1-p^r\{p^r+2r(-\log(p))\})+1-p\{p+2(-\log(p))\})}\]</span></p>
 <p>where <span class="math inline">\(r\)</span> is the pazard ratio and <span class="math inline">\(p\)</span> is the survival probability at time <span class="math inline">\(\tau\)</span> in the control group.</p>
 <p>Below, the power at the end of the trial (calculated with <code>powfn</code>) is compared to the power calculcated according to the formula above for several combinations of design parameters:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n&lt;-<span class="dv">200</span>; lambda&lt;-<span class="fl">0.07</span>; r&lt;-<span class="fl">0.5</span>; tau &lt;-<span class="dv">10</span>; alpha =<span class="st"> </span><span class="fl">0.025</span>
@@ -186,7 +196,7 @@ mu_denom&lt;-(n<span class="op">/</span><span class="dv">2</span>)<span class="o
 <div id="validating-the-rmsteval-function" class="section level2">
 <h2 class="hasAnchor">
 <a href="#validating-the-rmsteval-function" class="anchor"></a>Validating the RMSTeval function</h2>
-<p>The <code>RMSTeval</code> function calculates the probability the difference in the restricted mean survival time at time <span class="math inline">\(\tau\)</span> will be estimable using the Kaplan-Meier estimator, equation 4 in our paper. Consider a very simple situation where survival in each group is eqaul to 1 until time <span class="math inline">\(\tau\)</span> and <span class="math inline">\(\tau&lt;k_1\)</span>. Then we get the probability <span class="math inline">\(p_{KME}\)</span> is estimable in each group is eqaul to <span class="math display">\[ 1-\int_0^\tau \left(\frac{x}{k_1}\right)^{n-1}\frac{1}{k_1}dx=1-\left(\frac{\tau}{k_1}\right)^n\]</span> In the two-sample setting, the number of people in each group is n/2. The probability that we can estimate the RMST in both groups with the Kaplan-Meier estimator in both groups is the product of the probability we can estimate it in each group: <span class="math display">\[\left[1-\left(\frac{\tau}{k_1}\right)^{n/2}\right]^2\]</span></p>
+<p>The <code>RMSTeval</code> function calculates the probability the difference in the restricted mean survival time at time <span class="math inline">\(\tau\)</span> will be estimable using the Kaplan-Meier estimator, equation 4 in our paper. Consider a very simple situation where survival in each group is equal to 1 until time <span class="math inline">\(\tau\)</span> and <span class="math inline">\(\tau&lt;k_1\)</span>. Then we get the probability <span class="math inline">\(p_{KME}\)</span> is estimable in each group is equal to the following, where <span class="math inline">\(g(x)\)</span> is the hazard function for the censoring distribution and <span class="math inline">\(T\)</span> and <span class="math inline">\(C\)</span> are the random death and censoring times: <span class="math display">\[p_{KME}=1-n\int_0^\tau \{P(\min(T,C)&lt;x)\}^{n-1}g(x)S(x)dx\]</span> <span class="math display">\[= 1-n\int_0^\tau \left(\frac{x}{k_1}\right)^{n-1}\frac{1}{k_1}dx=1-\left(\frac{\tau}{k_1}\right)^n\]</span> If we let <span class="math inline">\(n\)</span> represent the total sample size, then the sample size in each group is <span class="math inline">\(n/2\)</span> The probability that we can estimate the RMST in both groups with the Kaplan-Meier estimator is the product of the probability we can estimate it in each group: <span class="math display">\[\left[1-\left(\frac{\tau}{k_1}\right)^{n/2}\right]^2\]</span></p>
 <p>Below, the probability we can use the Kaplan-Meier estimator to estimate the RMST difference at the end of the trial (calculated with <code>RMSTeval</code>) is compared to the probability calculcated according to the formula above for several combinations of design parameters:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">k1=<span class="dv">10</span>;tau =<span class="st"> </span><span class="fl">9.9</span>; n=<span class="dv">500</span>
 <span class="kw">RMSTeval</span>(<span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>), <span class="kw"><a href="../reference/survdef.html">survdef</a></span>(<span class="dt">haz =</span> <span class="dv">0</span>),<span class="dt">k1 =</span> k1, <span class="dt">k2 =</span> <span class="dv">0</span>, <span class="dt">tau =</span> tau, <span class="dt">n=</span>n)
@@ -221,12 +231,12 @@ k1=<span class="dv">10</span>; tau =<span class="st"> </span><span class="dv">10
 <div id="simulation-notes" class="section level2">
 <h2 class="hasAnchor">
 <a href="#simulation-notes" class="anchor"></a>Simulation notes</h2>
-<p>We do not use our own function <code>RMSTpow</code> with <code>sim=T</code> to do the simulations below; rather we use <code>rpwe</code> from the <code>PWEALL</code> package and <code>rweibull</code> to generate the simulated data for piecewise expoenential and Weibull distributions, respectively. We use <code><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary(survfit())</a></code> with the <code>rmean</code> option to calculate the RMST difference estimate and its estimated variance. Then, we calculate the Z statistic and compare it to a standard normal distribution to reject or fail to reject the null hypothesis.</p>
+<p>The <code>RMSTpow</code> function can do simulations and report empirical power and <span class="math inline">\(p_{KME}\)</span> using th <code>sim=T</code> option. However, we thought that it would be better to validate the asymptotic power and <span class="math inline">\(p_{KME}\)</span> calculated using <code>RMSTpow</code> by comparing them to empirical quantities calcualted independent of the <code>RMSTpow</code> function. The simulation code used to calculate the empirical quantities is shown below. We use <code>rpwe</code> from the <code>PWEALL</code> package and <code>rweibull</code> to generate the simulated data for piecewise expoenential and Weibull distributions, respectively. We use<code>summary.survfit</code> from the <code>survival</code> packages with the <code>rmean</code> option to calculate the RMST difference estimate and the variance estimate. Empirical quantities will be calculated using 1000 simulations.</p>
 </div>
 <div id="simulations-for-scenario-4-but-varying-the-hazard-rate-and-hazard-ratio" class="section level2">
 <h2 class="hasAnchor">
 <a href="#simulations-for-scenario-4-but-varying-the-hazard-rate-and-hazard-ratio" class="anchor"></a>Simulations for scenario 4, but varying the hazard rate and hazard ratio</h2>
-<p>The plots in Figure S9, Scenario 4 show the asymptotic power across a range of control group hazard rates and hazard ratios, including the scenarios used below. In the original Scenario 4, the hazard rate was about 0.07 and the hazard ratio was 0.67 for the first 15 months, then 1.2. Below, we will consider 4 values of the hazard rate and 4 values of the hazard ratio over the first 15 months. The hazard ratio after 15 months will remain 1.2. Empirical quantities will be calculated using 1000 simulations.</p>
+<p>The plots in Figure S9, Scenario 4 show the asymptotic power of the RMST-based test across a range of control group hazard rates and hazard ratios, including the specific design parameter combinations used below. In the original Scenario 4, the hazard rate was about 0.07 and the hazard ratio was 0.67 for the first 15 months, then 1.2. Below, we will consider 4 values of the hazard rate and 4 values of the hazard ratio over the first 15 months. The hazard ratio after 15 months will remain 1.2.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">hrate&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(.<span class="dv">05</span>, .<span class="dv">1</span>, .<span class="dv">15</span>, .<span class="dv">2</span>, .<span class="dv">07</span>, .<span class="dv">07</span>, .<span class="dv">07</span>, .<span class="dv">07</span>)
 hratio&lt;-<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(.<span class="dv">67</span>, .<span class="dv">67</span>, .<span class="dv">67</span>, .<span class="dv">67</span>, .<span class="dv">25</span>, .<span class="dv">5</span>, .<span class="dv">75</span>, <span class="dv">1</span>)
 k1&lt;-<span class="dv">24</span>
@@ -294,7 +304,7 @@ restable[,<span class="dv">2</span>]&lt;-hratio
 <td align="right">0.5951556</td>
 <td align="right">0.0000159</td>
 <td align="right">1.0000000</td>
-<td align="right">0.619</td>
+<td align="right">0.601</td>
 <td align="right">0.000</td>
 <td align="right">1.000</td>
 </tr>
@@ -304,9 +314,9 @@ restable[,<span class="dv">2</span>]&lt;-hratio
 <td align="right">0.9515384</td>
 <td align="right">0.0000000</td>
 <td align="right">0.8313636</td>
-<td align="right">0.943</td>
+<td align="right">0.938</td>
 <td align="right">0.000</td>
-<td align="right">0.836</td>
+<td align="right">0.826</td>
 </tr>
 <tr class="odd">
 <td align="right">0.15</td>
@@ -314,9 +324,9 @@ restable[,<span class="dv">2</span>]&lt;-hratio
 <td align="right">0.9948517</td>
 <td align="right">0.0000000</td>
 <td align="right">0.6724393</td>
-<td align="right">0.996</td>
+<td align="right">0.991</td>
 <td align="right">0.000</td>
-<td align="right">0.657</td>
+<td align="right">0.689</td>
 </tr>
 <tr class="even">
 <td align="right">0.20</td>
@@ -324,9 +334,9 @@ restable[,<span class="dv">2</span>]&lt;-hratio
 <td align="right">0.9988493</td>
 <td align="right">0.0000000</td>
 <td align="right">0.9069730</td>
-<td align="right">1.000</td>
+<td align="right">0.998</td>
 <td align="right">0.000</td>
-<td align="right">0.908</td>
+<td align="right">0.913</td>
 </tr>
 <tr class="odd">
 <td align="right">0.07</td>
@@ -344,9 +354,9 @@ restable[,<span class="dv">2</span>]&lt;-hratio
 <td align="right">0.9989543</td>
 <td align="right">0.0000000</td>
 <td align="right">0.9990999</td>
-<td align="right">1.000</td>
+<td align="right">0.999</td>
 <td align="right">0.000</td>
-<td align="right">0.998</td>
+<td align="right">1.000</td>
 </tr>
 <tr class="odd">
 <td align="right">0.07</td>
@@ -354,9 +364,9 @@ restable[,<span class="dv">2</span>]&lt;-hratio
 <td align="right">0.4724670</td>
 <td align="right">0.0000589</td>
 <td align="right">0.9976390</td>
-<td align="right">0.489</td>
+<td align="right">0.469</td>
 <td align="right">0.000</td>
-<td align="right">0.998</td>
+<td align="right">0.997</td>
 </tr>
 <tr class="even">
 <td align="right">0.07</td>
@@ -365,8 +375,8 @@ restable[,<span class="dv">2</span>]&lt;-hratio
 <td align="right">0.1023768</td>
 <td align="right">0.9929321</td>
 <td align="right">0.007</td>
-<td align="right">0.089</td>
-<td align="right">0.996</td>
+<td align="right">0.095</td>
+<td align="right">0.995</td>
 </tr>
 </tbody>
 </table>
@@ -451,7 +461,7 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.3048140</td>
 <td align="right">0.0003256</td>
 <td align="right">1.0000000</td>
-<td align="right">0.325</td>
+<td align="right">0.293</td>
 <td align="right">0.000</td>
 <td align="right">1.000</td>
 </tr>
@@ -462,7 +472,7 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.3048140</td>
 <td align="right">0.0003256</td>
 <td align="right">1.0000000</td>
-<td align="right">0.279</td>
+<td align="right">0.312</td>
 <td align="right">0.000</td>
 <td align="right">1.000</td>
 </tr>
@@ -473,9 +483,9 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.2759989</td>
 <td align="right">0.0004418</td>
 <td align="right">0.0060073</td>
-<td align="right">0.264</td>
+<td align="right">0.284</td>
 <td align="right">0.000</td>
-<td align="right">0.007</td>
+<td align="right">0.005</td>
 </tr>
 <tr class="even">
 <td align="right">24</td>
@@ -484,8 +494,8 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.3036115</td>
 <td align="right">0.0003297</td>
 <td align="right">0.9996383</td>
-<td align="right">0.316</td>
-<td align="right">0.001</td>
+<td align="right">0.313</td>
+<td align="right">0.000</td>
 <td align="right">1.000</td>
 </tr>
 <tr class="odd">
@@ -495,7 +505,7 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.7990805</td>
 <td align="right">0.0000010</td>
 <td align="right">1.0000000</td>
-<td align="right">0.801</td>
+<td align="right">0.780</td>
 <td align="right">0.000</td>
 <td align="right">1.000</td>
 </tr>
@@ -506,9 +516,9 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.1072584</td>
 <td align="right">0.0036956</td>
 <td align="right">0.8995271</td>
-<td align="right">0.144</td>
-<td align="right">0.006</td>
-<td align="right">0.905</td>
+<td align="right">0.107</td>
+<td align="right">0.003</td>
+<td align="right">0.892</td>
 </tr>
 </tbody>
 </table>
@@ -594,8 +604,8 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.2271133</td>
 <td align="right">1.0000000</td>
 <td align="right">0.001</td>
-<td align="right">0.234</td>
-<td align="right">1.000</td>
+<td align="right">0.222</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="right">36</td>
@@ -604,9 +614,9 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.0007582</td>
 <td align="right">0.2271133</td>
 <td align="right">1.0000000</td>
-<td align="right">0.001</td>
-<td align="right">0.260</td>
-<td align="right">1.000</td>
+<td align="right">0.002</td>
+<td align="right">0.244</td>
+<td align="right">1</td>
 </tr>
 <tr class="odd">
 <td align="right">24</td>
@@ -615,9 +625,9 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.0009179</td>
 <td align="right">0.2105992</td>
 <td align="right">0.0007515</td>
-<td align="right">0.000</td>
-<td align="right">0.208</td>
-<td align="right">0.002</td>
+<td align="right">0.001</td>
+<td align="right">0.217</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="right">24</td>
@@ -626,9 +636,9 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.0007640</td>
 <td align="right">0.2264410</td>
 <td align="right">1.0000000</td>
-<td align="right">0.000</td>
-<td align="right">0.229</td>
-<td align="right">1.000</td>
+<td align="right">0.001</td>
+<td align="right">0.207</td>
+<td align="right">1</td>
 </tr>
 <tr class="odd">
 <td align="right">24</td>
@@ -638,8 +648,8 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.6394962</td>
 <td align="right">1.0000000</td>
 <td align="right">0.000</td>
-<td align="right">0.645</td>
-<td align="right">1.000</td>
+<td align="right">0.631</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="right">24</td>
@@ -649,8 +659,8 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <td align="right">0.0658889</td>
 <td align="right">0.9995468</td>
 <td align="right">0.005</td>
-<td align="right">0.064</td>
-<td align="right">1.000</td>
+<td align="right">0.062</td>
+<td align="right">1</td>
 </tr>
 </tbody>
 </table>
@@ -661,6 +671,7 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
 <li id="fn1"><p>Eaton A, Therneau T and Le-Rademacher J. Designing Clinical Trials with (Restricted) Mean Survival Time Endpoint – Practical Considerations.<a href="#fnref1">↩</a></p></li>
 <li id="fn2"><p><a href="https://cran.r-project.org/web/packages/SSRMST/vignettes/vignette-ssrmst.html" class="uri">https://cran.r-project.org/web/packages/SSRMST/vignettes/vignette-ssrmst.html</a><a href="#fnref2">↩</a></p></li>
 <li id="fn3"><p>Royston P and Parmar MK. Restricted mean survival time: an alternative to the hazard ratio for the design and analysis of randomized trials with a time-to-event outcome. BMC Med Res Methodol 2013; 13: 152.<a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p>Eaton A, Therneau T and Le-Rademacher J. Designing Clinical Trials with (Restricted) Mean Survival Time Endpoint – Practical Considerations.<a href="#fnref4">↩</a></p></li>
 </ol>
 </div>
   </div>
@@ -670,7 +681,8 @@ restable[,<span class="dv">3</span>]&lt;-tauvec
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-<li><a href="#validating-the-evar-function">Validating the evar function</a></li>
+<li><a href="#approach-to-validating-internal-functions">Approach to validating internal functions</a></li>
+      <li><a href="#validating-the-evar-function">Validating the evar function</a></li>
       <li><a href="#validating-the-powfn-function">Validating the powfn function</a></li>
       <li><a href="#validating-the-rmsteval-function">Validating the RMSTeval function</a></li>
       <li><a href="#simulation-notes">Simulation notes</a></li>

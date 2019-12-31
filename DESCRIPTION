@@ -16,7 +16,7 @@ Description: Calculates the asymptotic power of the test of the difference in
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/anneae/RMSTdesign
+URL: https://anneae.github.io/RMSTdesign/
 BugReports: https://github.com/anneae/RMSTdesign/issues
 Imports:
     stats, 

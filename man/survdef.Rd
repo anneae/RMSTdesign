@@ -10,13 +10,13 @@ survdef(haz = NA, surv = NA, times = NA)
 \item{haz}{a vector of hazards of length<=10. If a single hazard is
 specified, the survival distribution is exponential with the specified
 hazard. If \code{haz} has length>2, the survival distribution has constant hazard
-equal to \code{haz} over the intervals \code{[0, t_1), [t_1, t_2), \dots, [t_m, Inf)}
+equal to \code{haz} over the intervals \verb{[0, t_1), [t_1, t_2), \\dots, [t_m, Inf)}
 where \code{t_i} are the entries of \code{times} and \code{times} has length \code{m}. One of
 \code{haz}, \code{surv} must be specified.}
 
 \item{surv}{a vector of survival probabilities of length<=10 corresponding to
 \code{times}. If \code{surv} is specified, the survival distribution has constant hazard
-over the intervals \code{[0, t_1), [t_1, t_2), \dots, [t_m, Inf)}
+over the intervals \verb{[0, t_1), [t_1, t_2), \\dots, [t_m, Inf)}
 where \code{t_i} are the entries of \code{times} and \code{times} has length \code{m+1}. The hazards
 are calculated so that the curve passes through each entry in \code{surv} at the
 corresponding time from \code{times}. One of \code{haz}, \code{surv} must be specified.}

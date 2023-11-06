@@ -23,7 +23,7 @@ Imports:
     survival,
     graphics
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.3
 Suggests: 
     knitr,
     rmarkdown,

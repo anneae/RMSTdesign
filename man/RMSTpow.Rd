@@ -4,9 +4,21 @@
 \alias{RMSTpow}
 \title{Sample Size and Power for the Test of the Difference in Restricted Mean Survival Time}
 \usage{
-RMSTpow(survdefC, survdefT, k1, k2, tau, n = NA, power = NA,
-  plot = F, sim = F, M = 1000, method = "tau_star", alpha = NA,
-  two.sided = F)
+RMSTpow(
+  survdefC,
+  survdefT,
+  k1,
+  k2,
+  tau,
+  n = NA,
+  power = NA,
+  plot = F,
+  sim = F,
+  M = 1000,
+  method = "tau_star",
+  alpha = NA,
+  two.sided = F
+)
 }
 \arguments{
 \item{survdefC}{the survival distribution of the control group, as a list in the form output by \code{survdef}.}
@@ -14,7 +26,7 @@ RMSTpow(survdefC, survdefT, k1, k2, tau, n = NA, power = NA,
 \item{survdefT}{the survival distribution of the treatment group, as a list in the form output by \code{survdef}.}
 
 \item{k1}{length of the accrual period. We assume subjects will accrue
-uniformly over the interval \code{(0, k1)} and then be followed until trial time \code{k1+k2}.}
+uniformly over the interval \verb{(0, k1)} and then be followed until trial time \code{k1+k2}.}
 
 \item{k2}{length of the follow-up period.}
 

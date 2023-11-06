@@ -6,23 +6,18 @@
 \alias{RMSTdesign-package}
 \title{RMSTdesign: Sample Size and Power Calculation for the Difference in Restricted Mean Survival Time}
 \description{
-Calculates the asymptotic power of the test of the difference in 
-    restricted mean survival time under user-specified trial design parameters, 
-    or the sample size required for a specified power. It also provides 
-    the probability restricted mean survival time will be estimable using the area
-    under the Kaplan-Meier curve, and, if desired, plots of power versus design 
-    parameters and empirical power based on simulations.
+Calculates the asymptotic power of the test of the difference in restricted mean survival time under user-specified trial design parameters, or the sample size required for a specified power. It also provides the probability restricted mean survival time will be estimable using the area under the Kaplan-Meier curve, and, if desired, plots of power versus design parameters and empirical power based on simulations.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/anneae/RMSTdesign}
+  \item \url{https://anneae.github.io/RMSTdesign/}
   \item Report bugs at \url{https://github.com/anneae/RMSTdesign/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Anne Eaton \email{eato0055@umn.edu} (0000-0001-5900-9745)
+\strong{Maintainer}: Anne Eaton \email{eato0055@umn.edu} (\href{https://orcid.org/0000-0001-5900-9745}{ORCID})
 
 }
 \keyword{internal}

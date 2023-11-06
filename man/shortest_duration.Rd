@@ -4,8 +4,17 @@
 \alias{shortest_duration}
 \title{Find Shortest Duration Trial}
 \usage{
-shortest_duration(survdefC, survdefT, tau, power, accrual_rate,
-  pKME = 0.95, alpha = 0.025, altdesign = F, multiplier = 1.1)
+shortest_duration(
+  survdefC,
+  survdefT,
+  tau,
+  power,
+  accrual_rate,
+  pKME = 0.95,
+  alpha = 0.025,
+  altdesign = F,
+  multiplier = 1.1
+)
 }
 \arguments{
 \item{survdefC}{the survival distribution of the control group, as a list in the form output by survdef.}
@@ -32,7 +41,7 @@ shortest trial in addition to the shortest trial.}
 
 \item{multiplier}{the factor by which the duration of the shortest possible
 trial is multiplied to acquire the duration of the alternative trial design.
-Default is 1.1, meaning a trial that is 10% longer in duration than the
+Default is 1.1, meaning a trial that is 10\% longer in duration than the
 shortest possible trial. This argument is ignored if altdesign=F.}
 }
 \value{
